@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>68th SEIKO FESTA</title>
+
+<link rel="stylesheet" href="style.css">
+
+<!-- SNSアイコン -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+<!-- =========================
+   ハンバーガー
+========================= -->
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+<nav class="mobile-menu" id="mobileMenu">
+    <a href="#" onclick="showPage('home')">HOME</a>
+    <a href="#" onclick="showPage('news')">NEWS</a>
+    <a href="#" onclick="showPage('booth')">BOOTH</a>
+    <a href="#" onclick="showPage('maps')">MAPS</a>
+    <a href="#" onclick="showPage('schedule')">SCHEDULE</a>
+</nav>
+
+<!-- =========================
+   PCボタン
+========================= -->
+<div class="button-container">
+
+<button class="circle-btn" onclick="showPage('home')">HOME</button>
+    <button class="circle-btn" onclick="showPage('news')">NEWS</button>
+    <button class="circle-btn" onclick="showPage('booth')">BOOTH</button>
+    <button class="circle-btn" onclick="showPage('maps')">MAPS</button>
+    <button class="circle-btn" onclick="showPage('schedule')">SCHEDULE</button>
+
+</div>
+
+<!-- =========================
+   HOME
+========================= -->
+<div class="page active" id="home">
+
+    <div class="content">
+
+        <div class="countdown-container">
+            <p class="countdown-subtitle">COUNTDOWN TO THE OPENING</p>
+
+            <div class="countdown">
+                <div class="time-box"><span id="days">0</span><p>DAYS</p></div>
+                <div class="time-box"><span id="hours">0</span><p>HOURS</p></div>
+                <div class="time-box"><span id="minutes">0</span><p>MIN</p></div>
+                <div class="time-box"><span id="seconds">0</span><p>SEC</p></div>
+            </div>
+        </div>
+
+        <h1>68th SEIKO FESTA</h1>
+
+        <p>ようこそ聖光祭へ！</p>
+
+    </div>
+
+</div> 
+
+<!-- =========================
+   NEWS
+========================= -->
+<div class="page" id="news">
+    <div class="content">
+        <h1>NEWS</h1>
+
+        <div class="news-box">
+            <h2>2027/04/10</h2>
+            <p>文化祭開催決定</p>
+        </div>
+
+        <div class="news-box">
+            <h2>2027/03/20</h2>
+            <p>出店募集開始</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- =========================
+   BOOTH
+========================= -->
+<div class="page" id="booth">
+    <div class="content">
+        <h1>BOOTH</h1>
+
+        <!-- 検索バー -->
+        <div class="search-box-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+
+            <input
+                 type="text"
+                 id="boothSearch"
+                 placeholder="ブース名 説明 場所で検索">
+        </div>
+
+        <div class="floor-filter">
+
+          <button onclick="filterFloor('all', this)">ALL</button>
+          <button onclick="filterFloor('1f', this)">1F</button>
+          <button onclick="filterFloor('2f', this)">2F</button>
+          <button onclick="filterFloor('3f', this)">3F</button>
+          <button onclick="filterFloor('4f', this)">4F</button>
+
+        </div>
+
+        <div class="booth-list">
+
+            <div class="booth-item"
+                 onclick="showPage('yakyu-detail')"
+                 data-floor="1f"
+                 data-key="打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？景品も用意してます！初心者も経験者も野球場へ集まれ！ リアル野球盤 グラウンド">
+
+                <img src="リアル野球盤.CWaH3bkx_1y7qp5.webp" alt="リアル野球盤">
+
+                <div class="booth-text">
+                    <h2>リアル野球盤</h2>
+                    <p class="place"> グラウンド（1階）</p>
+                    <p>
+                       打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？
+                       景品も用意してます！初心者も経験者も野球場へ集まれ！
+                    </p>
+                </div>
+
+        </div>
+
+        <div class="booth-item"
+             onclick="showPage('this-detail')"
+             data-floor="1f"
+            data-key="サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。高得点を取れば、豪華景品が手に入るかも？是非お越しください。 This is football グラウンド">
+
+           <img src="This is Football.CZp6gtR__Z3GCdF.webp" alt="This is Football">
+
+           <div class="booth-text">
+               <h2>This is football</h2>
+               <p class="place"> グラウンド（1階）</p>
+               <p>
+                   サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。
+                   高得点を取れば、豪華景品が手に入るかも？是非お越しください。
+               </p>
+           </div>
+
+        </div>
+
+            <div class="booth-item" data-key="美術 アート 絵画">
+                <img src="art.jpg" alt="美術部">
+                <div class="booth-text">
+                    <h2>美術部</h2>
+                    <p class="place">📍 美術室（3F）</p>
+                    <p>作品展示＆ポストカード配布</p>
+                </div>
+            </div>
+
+            <div class="booth-item" data-key="鉄道 ジオラマ 模型">
+                <img src="train.jpg" alt="鉄道研究部">
+                <div class="booth-text">
+                    <h2>鉄道研究部</h2>
+                    <p class="place">📍 物理室（4F）</p>
+                    <p>巨大ジオラマ＆運転体験</p>
+                </div>
+            </div>
+
+            <div class="booth-item" data-key="パソコン ゲーム プログラミング">
+                <img src="pc.jpg" alt="パソコン部">
+                <div class="booth-text">
+                    <h2>パソコン部</h2>
+                    <p class="place">📍 情報教室（3F）</p>
+                    <p>自作ゲーム試遊コーナー</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- =========================
+   this is football詳細
+========================= -->
+<div class="page" id="this-detail">
+
+    <div class="content">
+
+        <button class="back-btn"
+                onclick="showPage('booth')">
+            ← 戻る
+        </button>
+        
+
+        <h1>This is football</h1>
+
+        <img src="This is Football.CZp6gtR__Z3GCdF.webp" class="detail-image">
+
+        <p class="detail-place">
+             グラウンド（1F）
+        </p>
+
+        <div class="detail-text">
+            <p>
+                サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。高得点を取れば、豪華景品が手に入るかも？是非お越しください。
+            </p>
+            <button class="map-btn"
+                    onclick="openMapFloor('map1')">
+                 MAPで見る
+            </button>    
+        </div>
+
+    </div>
+
+</div>
+<!-- =========================
+   リアル野球盤詳細
+========================= -->
+<div class="page" id="yakyu-detail">
+
+    <div class="content">
+
+        <button class="back-btn"
+                onclick="showPage('booth')">
+            ← 戻る
+        </button>
+        
+
+        <h1>リアル野球盤</h1>
+
+        <img src="リアル野球盤.CWaH3bkx_1y7qp5.webp" class="detail-image">
+
+        <p class="detail-place">
+             グラウンド（1F）
+        </p>
+
+        <div class="detail-text">
+            <p>
+                打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？景品も用意してます！初心者も経験者も野球場へ集まれ！
+            </p>
+            <button class="map-btn"
+                    onclick="openMapFloor('map1')">
+                 MAPで見る
+            </button>    
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================
+   MAPS（ズーム対応）
+========================= -->
+<div class="page" id="maps">
+    <div class="content">
+
+        <h1>MAPS</h1>
+
+        <div class="floor-tabs">
+            <button class="floor-btn" onclick="showMap('map1', this)">1F</button>
+            <button class="floor-btn" onclick="showMap('map2', this)">2F</button>
+            <button class="floor-btn" onclick="showMap('map3', this)">3F</button>
+            <button class="floor-btn" onclick="showMap('map4', this)">4F</button>
+        </div>
+
+        <div class="map-container">
+            <div class="map-wrapper" id="mapWrapper">
+
+                <img id="map1" class="map-img" src="map1.8cgplEnB.svg">
+                <img id="map2" class="map-img" src="map2.Cs3qd4O4.svg">
+                <img id="map3" class="map-img" src="map3.BRoANSkX.svg">
+                <img id="map4" class="map-img" src="map4.Dc8Ov8CJ.svg">
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- =========================
+   SCHEDULE
+========================= -->
+<div class="page" id="schedule">
+  <div class="content">
+
+    <h1>SCHEDULE</h1>
+
+    <!-- DAY切替 -->
+    <div class="day-switch">
+
+      <button class="day-btn active" onclick="setDay('day1', event)">
+        <small>DAY1</small><br>4/25
+      </button>
+
+      <button class="day-btn" onclick="setDay('day2', event)">
+        <small>DAY2</small><br>4/26
+      </button>
+
+    </div>
+
+    <!-- 上：場所 -->
+    <div class="room-header">
+      <div></div>
+      <div>外ステージ</div>
+      <div>講堂</div>
+      <div>小講堂</div>
+      <div>音楽室2</div>
+    </div>
+
+    <!-- 本体 -->
+    <div class="timetable">
+
+      <!-- 左：時間 -->
+      <div class="time-axis">
+        <div>09:00</div>
+        <div>10:00</div>
+        <div>11:00</div>
+        <div>12:00</div>
+        <div>13:00</div>
+        <div>14:00</div>
+        <div>15:00</div>
+        <div>16:00</div>
+        <div>17:00</div>
+      </div>
+
+      <!-- 右：会場 -->
+      <div class="rooms">
+
+        <div class="room" data-room="outside"></div>
+        <div class="room" data-room="hall"></div>
+        <div class="room" data-room="small"></div>
+        <div class="room" data-room="music"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- =========================
+   JS（全部ここに入ってる）
+========================= -->
+<script>
+
+const events = {
+  day1: [
+    { title:"開会式", room:"outside", start:"09:00", end:"09:30" },
+    { title:"ダンス部", room:"outside", start:"10:00", end:"11:00" },
+    { title:"吹奏楽部", room:"hall", start:"10:00", end:"11:30" },
+    { title:"クイズ大会", room:"small", start:"11:00", end:"12:00" },
+    { title:"軽音ライブ", room:"music", start:"11:00", end:"13:00" }
+  ],
+
+  day2: [
+    { title:"オープニング", room:"outside", start:"09:30", end:"10:00" },
+    { title:"バンドライブ", room:"music", start:"10:00", end:"11:30" },
+    { title:"演劇", room:"hall", start:"11:00", end:"12:30" }
+  ]
+};
+
+let currentDay = "day1";
+
+/* 時間変換 */
+function toMin(t){
+  const [h,m] = t.split(":").map(Number);
+  return h*60 + m;
+}
+
+/* DAY切替 */
+function setDay(day, e){
+
+  currentDay = day;
+
+  document.querySelectorAll(".day-btn")
+    .forEach(b => b.classList.remove("active"));
+
+  e.target.classList.add("active");
+
+  renderSchedule();
+}
+
+/* 描画 */
+function renderSchedule(){
+
+  const start = 9 * 60;
+  const end = 17 * 60;
+  const total = end - start;
+
+  const dayEvents = (events[currentDay] || [])
+    .slice()
+    .sort((a, b) => toMin(a.start) - toMin(b.start));
+
+  let index = 0;
+
+  document.querySelectorAll(".room").forEach(room => {
+
+    room.innerHTML = ""; // ←毎回リセット（超重要）
+
+    const roomName = room.dataset.room;
+
+    dayEvents
+      .filter(e => e.room === roomName)
+      .forEach(e => {
+
+        const top = ((toMin(e.start) - start) / total) * 100;
+        const height = ((toMin(e.end) - toMin(e.start)) / total) * 100;
+
+        const el = document.createElement("div");
+        el.className = "event-block";
+
+        el.textContent = e.title;
+
+        el.style.top = top + "%";
+        el.style.height = height + "%";
+
+        // ⭐ここが「順番に出る」本体
+        el.style.animationDelay = (index * 0.12) + "s";
+        index++;
+
+        room.appendChild(el);
+      });
+  });
+}
+
+/* 初期表示 */
+window.addEventListener("DOMContentLoaded", renderSchedule);
+/* 初期表示 */
+window.addEventListener("DOMContentLoaded", renderSchedule);
+
+</script>
+<!-- =========================
+   フッター
+========================= -->
+<footer class="site-footer">
+
+    <!-- 上段 -->
+    <div class="footer-top">
+
+        <div class="footer-title">68th SEIKO FESTA</div>
+
+        <div class="footer-subtitle">
+            聖光学院中学校高等学校 第68回聖光祭
+        </div>
+
+        <!-- アクセス -->
+        <div class="footer-access">
+
+            <div class="access-title">ACCESS</div>
+
+            <div class="access-text">
+                神奈川県横浜市中区山手町<br>
+                JR根岸線「山手駅」徒歩
+            </div>
+
+            <a class="map-link" href="https://maps.google.com/?cid=11012242495815513370&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF&hl=ja&gl=JP&source=embed" target="_blank">
+                📍 Google Mapsで開く
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- 下段 -->
+    <div class="footer-bottom">
+
+        <div class="sns-links">
+
+            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="#"><i class="fa-brands fa-youtube"></i></a>
+            <a href="#"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+
+        </div>
+
+        <p class="copyright">
+            © 2027 SEIKO FESTA All Rights Reserved.
+        </p>
+
+    </div>
+
+</footer>
+<!-- =========================
+   JS
+========================= -->
+<script>
+let currentFloor = "all";
+
+/* ページ切替 */
+function showPage(id){
+
+    document.querySelectorAll(".page").forEach(p=>{
+        p.classList.remove("active");
+    });
+
+    document.getElementById(id).classList.add("active");
+
+    document.getElementById("mobileMenu").classList.remove("show");
+
+    // 一番上へ移動
+    window.scrollTo(0, 0);
+
+}
+
+/* ハンバーガー */
+function toggleMenu(){
+    document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+/* MAP */
+let scale = 1;
+let posX = 0;
+let posY = 0;
+
+function showMap(id, btn){
+
+    document.querySelectorAll(".map-img").forEach(img=>{
+        img.style.display = "none";
+    });
+
+    const el = document.getElementById(id);
+    el.style.display = "block";
+
+    scale = 1;
+    posX = 0;
+    posY = 0;
+
+    updateMap();
+
+    document.querySelectorAll(".floor-btn").forEach(button=>{
+        button.classList.remove("active");
+    });
+
+    if(btn){
+        btn.classList.add("active");
+    }
+}
+
+/* ズーム */
+document.getElementById("mapWrapper").addEventListener("wheel",(e)=>{
+    e.preventDefault();
+
+    scale += (e.deltaY < 0 ? 0.1 : -0.1);
+
+    if(scale < 0.5) scale = 0.5;
+    if(scale > 3) scale = 3;
+
+    updateMap();
+});
+
+/* ドラッグ */
+let isDown = false;
+let startX, startY;
+
+const wrapper = document.getElementById("mapWrapper");
+
+wrapper.addEventListener("mousedown",(e)=>{
+    isDown = true;
+    startX = e.clientX - posX;
+    startY = e.clientY - posY;
+});
+
+wrapper.addEventListener("mousemove",(e)=>{
+    if(!isDown) return;
+
+    posX = e.clientX - startX;
+    posY = e.clientY - startY;
+
+    updateMap();
+});
+
+wrapper.addEventListener("mouseup",()=>isDown=false);
+wrapper.addEventListener("mouseleave",()=>isDown=false);
+
+function updateMap(){
+
+    const active = document.querySelector(".map-img[style*='block']");
+
+    if(!active) return;
+
+    active.style.transform =
+        `translate(${posX}px,${posY}px) scale(${scale})`;
+}
+
+/* 初期 */
+window.addEventListener("DOMContentLoaded",()=>{
+    showMap("map1");
+});
+
+/* カウントダウン */
+const target = new Date("2027-04-23T09:00:00+09:00");
+
+function countdown(){
+
+    const now = new Date();
+    const diff = target - now;
+
+    document.getElementById("days").textContent = Math.floor(diff/86400000);
+    document.getElementById("hours").textContent = Math.floor(diff/3600000%24);
+    document.getElementById("minutes").textContent = Math.floor(diff/60000%60);
+    document.getElementById("seconds").textContent = Math.floor(diff/1000%60);
+}
+
+setInterval(countdown,1000);
+countdown();
+const boothSearch = document.getElementById("boothSearch");
+const booths = document.querySelectorAll(".booth-item");
+
+boothSearch.addEventListener(
+    "input",
+    updateBoothFilter
+);
+function filterFloor(floor, button){
+
+    currentFloor = floor;
+
+    document
+        .querySelectorAll(".floor-filter button")
+        .forEach(btn =>
+            btn.classList.remove("active")
+        );
+
+    if(button){
+        button.classList.add("active");
+    }
+
+    updateBoothFilter();
+
+}   
+   function openMapFloor(mapId){
+
+      showPage("maps");
+
+      showMap(mapId);
+
+}
+function updateBoothFilter(){
+
+    const keyword =
+        document.getElementById("boothSearch")
+        .value
+        .toLowerCase();
+
+    const booths =
+        document.querySelectorAll(".booth-item");
+
+    booths.forEach(item=>{
+
+        const text =
+            (item.dataset.key || "")
+            .toLowerCase();
+
+        const floorMatch =
+            currentFloor === "all" ||
+            item.dataset.floor === currentFloor;
+
+        const keywordMatch =
+            text.includes(keyword);
+
+        if(floorMatch && keywordMatch){
+            item.classList.remove("hide");
+        }else{
+            item.classList.add("hide");
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
