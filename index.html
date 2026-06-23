@@ -17,22 +17,30 @@
 <!-- =========================
    ハンバーガー
 ========================= -->
-<button class="menu-btn" onclick="toggleMenu()">☰</button>
+<button class="menu-btn" id="menuBtn">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
 
-<nav class="mobile-menu" id="mobileMenu">
+<div class="mobile-menu" id="mobileMenu">
+
+    
+
     <a href="#" onclick="showPage('home')">HOME</a>
     <a href="#" onclick="showPage('news')">NEWS</a>
+    <a href="#" onclick="showPage('maps')">MAP</a>
     <a href="#" onclick="showPage('booth')">BOOTH</a>
-    <a href="#" onclick="showPage('maps')">MAPS</a>
-    <a href="#" onclick="showPage('schedule')">SCHEDULE</a>
-</nav>
+    <a href="#" onclick="showPage('schedule')">TIMETABLE</a>
+
+</div>
 
 <!-- =========================
    PCボタン
 ========================= -->
 <div class="button-container">
 
-<button class="circle-btn" onclick="showPage('home')">HOME</button>
+<button class="circle-btn active" onclick="showPage('home')">HOME</button>
     <button class="circle-btn" onclick="showPage('news')">NEWS</button>
     <button class="circle-btn" onclick="showPage('booth')">BOOTH</button>
     <button class="circle-btn" onclick="showPage('maps')">MAPS</button>
@@ -70,17 +78,22 @@
    NEWS
 ========================= -->
 <div class="page" id="news">
-    <div class="content">
+    <div class="content news-content">
+
         <h1>NEWS</h1>
 
-        <div class="news-box">
-            <h2>2027/04/10</h2>
-            <p>文化祭開催決定</p>
-        </div>
+        <div class="news-list">
 
-        <div class="news-box">
-            <h2>2027/03/20</h2>
-            <p>出店募集開始</p>
+            <div class="news-card">
+                <div class="news-date">2027/04/10</div>
+                <div class="news-text">文化祭開催決定</div>
+            </div>
+
+            <div class="news-card">
+                <div class="news-date">2027/03/20</div>
+                <div class="news-text">出店募集開始</div>
+            </div>
+
         </div>
 
     </div>
@@ -115,7 +128,7 @@
 
         <div class="booth-list">
 
-            <div class="booth-item"
+            <div class="booth-item booth-card"
                  onclick="showPage('yakyu-detail')"
                  data-floor="1f"
                  data-key="打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？景品も用意してます！初心者も経験者も野球場へ集まれ！ リアル野球盤 グラウンド">
@@ -133,7 +146,7 @@
 
         </div>
 
-        <div class="booth-item"
+        <div class="booth-item booth-card"
              onclick="showPage('this-detail')"
              data-floor="1f"
             data-key="サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。高得点を取れば、豪華景品が手に入るかも？是非お越しください。 This is football グラウンド">
@@ -491,23 +504,53 @@ let currentFloor = "all";
 /* ページ切替 */
 function showPage(id){
 
-    document.querySelectorAll(".page").forEach(p=>{
-        p.classList.remove("active");
+    document.querySelectorAll(".page").forEach(page=>{
+        page.classList.remove("active");
     });
 
     document.getElementById(id).classList.add("active");
 
-    document.getElementById("mobileMenu").classList.remove("show");
+    closeMenu();
 
-    // 一番上へ移動
-    window.scrollTo(0, 0);
+    // PCボタンの光る処理
+    document.querySelectorAll(".circle-btn").forEach(btn=>{
+        btn.classList.remove("active");
+    });
 
+    const activeBtn = document.querySelector(
+        `.circle-btn[onclick="showPage('${id}')"]`
+    );
+
+    if(activeBtn){
+        activeBtn.classList.add("active");
+    }
+
+    window.scrollTo(0,0);
 }
 
 /* ハンバーガー */
-function toggleMenu(){
-    document.getElementById("mobileMenu").classList.toggle("show");
+const menuBtn = document.getElementById("menuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+
+function closeMenu(){
+    mobileMenu.classList.remove("show");
+    menuBtn.classList.remove("active");
 }
+
+function openMenu(){
+    mobileMenu.classList.add("show");
+    menuBtn.classList.add("active");
+}
+
+function toggleMenu(){
+    if(mobileMenu.classList.contains("show")){
+        closeMenu();
+    }else{
+        openMenu();
+    }
+}
+
+menuBtn.addEventListener("click", toggleMenu);
 
 /* =========================
    MAP
