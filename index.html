@@ -509,11 +509,17 @@ function toggleMenu(){
     document.getElementById("mobileMenu").classList.toggle("show");
 }
 
-/* MAP */
+/* =========================
+   MAP
+========================= */
+
 let scale = 1;
 let posX = 0;
 let posY = 0;
 
+let activeMap = null;
+
+/* MAP切替 */
 function showMap(id, btn){
 
     document.querySelectorAll(".map-img").forEach(img=>{
@@ -521,7 +527,10 @@ function showMap(id, btn){
     });
 
     const el = document.getElementById(id);
+
     el.style.display = "block";
+
+    activeMap = el;
 
     scale = 1;
     posX = 0;
@@ -538,91 +547,148 @@ function showMap(id, btn){
     }
 }
 
-/* ズーム */
-document.getElementById("mapWrapper").addEventListener("wheel",(e)=>{
+/* =========================
+   ズーム・ドラッグ
+========================= */
+
+const wrapper = document.getElementById("mapWrapper");
+
+let isDown = false;
+let startX = 0;
+let startY = 0;
+let lastDistance = 0;
+
+/* PCホイールズーム */
+wrapper.addEventListener("wheel",(e)=>{
+
     e.preventDefault();
 
     scale += (e.deltaY < 0 ? 0.1 : -0.1);
 
     if(scale < 0.5) scale = 0.5;
-    if(scale > 3) scale = 3;
+    if(scale > 5) scale = 5;
 
     updateMap();
+
 });
 
-/* ドラッグ */
-let isDown = false;
-let startX, startY;
-
-const wrapper = document.getElementById("mapWrapper");
-let lastDistance = 0;
-
-wrapper.addEventListener("touchmove",(e)=>{
-
-    if(e.touches.length !== 2) return;
-
-    e.preventDefault();
-
-    const dx =
-        e.touches[0].clientX -
-        e.touches[1].clientX;
-
-    const dy =
-        e.touches[0].clientY -
-        e.touches[1].clientY;
-
-    const distance =
-        Math.sqrt(dx*dx + dy*dy);
-
-    if(lastDistance){
-
-        scale *= distance / lastDistance;
-
-        if(scale < 0.5) scale = 0.5;
-        if(scale > 5) scale = 5;
-
-        updateMap();
-    }
-
-    lastDistance = distance;
-
-},{passive:false});
-
-wrapper.addEventListener("touchend",()=>{
-    lastDistance = 0;
-});
-
+/* PCドラッグ開始 */
 wrapper.addEventListener("mousedown",(e)=>{
+
     isDown = true;
+
     startX = e.clientX - posX;
     startY = e.clientY - posY;
+
 });
 
+/* PCドラッグ中 */
 wrapper.addEventListener("mousemove",(e)=>{
+
     if(!isDown) return;
 
     posX = e.clientX - startX;
     posY = e.clientY - startY;
 
     updateMap();
+
 });
 
-wrapper.addEventListener("mouseup",()=>isDown=false);
-wrapper.addEventListener("mouseleave",()=>isDown=false);
+/* PCドラッグ終了 */
+wrapper.addEventListener("mouseup",()=>{
+    isDown = false;
+});
+
+wrapper.addEventListener("mouseleave",()=>{
+    isDown = false;
+});
+
+/* =========================
+   スマホドラッグ
+========================= */
+
+wrapper.addEventListener("touchstart",(e)=>{
+
+    if(e.touches.length === 1){
+
+        isDown = true;
+
+        startX = e.touches[0].clientX - posX;
+        startY = e.touches[0].clientY - posY;
+
+    }
+
+},{passive:false});
+
+wrapper.addEventListener("touchmove",(e)=>{
+
+    /* 1本指ドラッグ */
+    if(isDown && e.touches.length === 1){
+
+        posX = e.touches[0].clientX - startX;
+        posY = e.touches[0].clientY - startY;
+
+        updateMap();
+    }
+
+    /* 2本指ピンチズーム */
+    if(e.touches.length === 2){
+
+        e.preventDefault();
+
+        const dx =
+            e.touches[0].clientX -
+            e.touches[1].clientX;
+
+        const dy =
+            e.touches[0].clientY -
+            e.touches[1].clientY;
+
+        const distance =
+            Math.sqrt(dx * dx + dy * dy);
+
+        if(lastDistance){
+
+            scale *= distance / lastDistance;
+
+            if(scale < 0.5) scale = 0.5;
+            if(scale > 5) scale = 5;
+
+            updateMap();
+        }
+
+        lastDistance = distance;
+    }
+
+},{passive:false});
+
+wrapper.addEventListener("touchend",()=>{
+
+    isDown = false;
+    lastDistance = 0;
+
+});
+
+/* =========================
+   更新
+========================= */
 
 function updateMap(){
 
-    const active = document.querySelector(".map-img[style*='block']");
+    if(!activeMap) return;
 
-    if(!active) return;
-
-    active.style.transform =
-        `translate(${posX}px,${posY}px) scale(${scale})`;
+    activeMap.style.transform =
+        `translate(${posX}px, ${posY}px) scale(${scale})`;
 }
 
-/* 初期 */
+/* =========================
+   初期表示
+========================= */
+
 window.addEventListener("DOMContentLoaded",()=>{
+
     showMap("map1");
+
 });
 
 /* カウントダウン */
