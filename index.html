@@ -31,7 +31,7 @@
     <a href="#" onclick="showPage('news')">NEWS</a>
     <a href="#" onclick="showPage('maps')">MAP</a>
     <a href="#" onclick="showPage('booth')">BOOTH</a>
-    <a href="#" onclick="showPage('schedule')">TIMETABLE</a>
+    <a href="#" onclick="showPage('schedule')">SCHEDULE</a>
 
 </div>
 
@@ -105,7 +105,9 @@
 <div class="page" id="booth">
     <div class="content">
         <h1>BOOTH</h1>
-
+        <p class="booth-subtitle">
+            Swipe to Explore
+        </p>
         <!-- 検索バー -->
         <div class="search-box-container">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -195,7 +197,7 @@
     </div>
 </div>
 <!-- =========================
-   this is football詳細
+   This is football詳細
 ========================= -->
 <div class="page" id="this-detail">
 
@@ -205,24 +207,41 @@
                 onclick="showPage('booth')">
             ← 戻る
         </button>
-        
 
-        <h1>This is football</h1>
+        <div class="detail-header">
+            <h1>This is football</h1>
 
-        <img src="This is Football.CZp6gtR__Z3GCdF.webp" class="detail-image">
-
-        <p class="detail-place">
-             グラウンド（1F）
-        </p>
-
-        <div class="detail-text">
-            <p>
-                サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。高得点を取れば、豪華景品が手に入るかも？是非お越しください。
+            <p class="detail-place">
+                グラウンド（1F）
             </p>
-            <button class="map-btn"
+        </div>
+
+        <div class="detail-main">
+
+            <img
+                src="This is Football.CZp6gtR__Z3GCdF.webp"
+                alt="This is football"
+                class="detail-image">
+
+            <div class="detail-text">
+
+                <p>
+                    サッカー部の展示ではキックターゲット、
+                    PK、ミニゲームを体験できます。
+                    高得点を取れば豪華景品が手に入るかも？
+                    是非お越しください。
+                </p>
+
+                <button
+                    class="map-btn"
                     onclick="openMapFloor('map1')">
-                 MAPで見る
-            </button>    
+
+                    MAPで見る
+
+                </button>
+
+            </div>
+
         </div>
 
     </div>
@@ -239,24 +258,41 @@
                 onclick="showPage('booth')">
             ← 戻る
         </button>
-        
 
-        <h1>リアル野球盤</h1>
+        <div class="detail-header">
+            <h1>リアル野球盤</h1>
 
-        <img src="リアル野球盤.CWaH3bkx_1y7qp5.webp" class="detail-image">
-
-        <p class="detail-place">
-             グラウンド（1F）
-        </p>
-
-        <div class="detail-text">
-            <p>
-                打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？景品も用意してます！初心者も経験者も野球場へ集まれ！
+            <p class="detail-place">
+                グラウンド（1F）
             </p>
-            <button class="map-btn"
+        </div>
+
+        <div class="detail-main">
+
+            <img
+                src="リアル野球盤.CWaH3bkx_1y7qp5.webp"
+                alt="リアル野球盤"
+                class="detail-image">
+
+            <div class="detail-text">
+
+                <p>
+                    打って投げて、目指せホームラン！
+                    リアル野球盤と的当てに挑戦しませんか？
+                    景品も用意してます！
+                    初心者も経験者も野球場へ集まれ！
+                </p>
+
+                <button
+                    class="map-btn"
                     onclick="openMapFloor('map1')">
-                 MAPで見る
-            </button>    
+
+                    MAPで見る
+
+                </button>
+
+            </div>
+
         </div>
 
     </div>
