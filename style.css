@@ -165,10 +165,7 @@ body::before{
     transform:translateY(-2px);
 }
 
-.circle-btn.active{
-    background:#ff7f00;
-    color:white;
-}
+
 .circle-btn.active{
     color:white;
 
@@ -320,6 +317,15 @@ body::before{
     box-shadow:
         0 0 50px rgba(255,127,0,.15);
 }
+#maps .content{
+    background:rgba(255,255,255,.05);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:30px;
+    box-shadow:0 0 50px rgba(255,127,0,.12);
+    position:relative;
+    overflow:hidden;
+}
 
 /* =========================
    装飾
@@ -413,54 +419,94 @@ h1{
     font-size:clamp(8px, 2vw, 14px);
 }
 
+
 /* =========================
-   MAP
+   MAP（完全統一版）
 ========================= */
+
+#maps h1{
+    text-align:center;
+    color:#ff7f00;
+    letter-spacing:4px;
+    text-shadow:0 0 20px rgba(255,127,0,.4);
+}
+
+/* ===== タブ全体 ===== */
 .floor-tabs{
     display:flex;
     justify-content:center;
-    gap:10px;
-    margin:20px 0;
+    gap:12px;
+    margin:25px 0;
 }
 
-.floor-tabs button{
+/* ===== ボタン本体 ===== */
+.floor-btn{
     padding:10px 18px;
 
     border-radius:999px;
-    border:2px solid rgba(255,127,0,.3);
+    border:1px solid rgba(255,127,0,.15);
 
-    background:rgba(255,127,0,.1);
-    color:#ff7f00;
+    background:rgba(255,255,255,.05);
+    color:#ffb347;
 
     font-weight:800;
+    letter-spacing:1px;
 
     cursor:pointer;
-    transition:.3s;
+
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+
+    transition:.25s ease;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.2);
+
+    position:relative;
+    overflow:hidden;
 }
 
-.floor-tabs button:hover{
-    background:#ff7f00;
+/* ===== hover ===== */
+.floor-btn:hover{
+    background:rgba(255,127,0,.15);
     color:white;
-    transform:scale(1.05);
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 10px 25px rgba(0,0,0,.25),
+        0 0 15px rgba(255,127,0,.2);
 }
 
-.floor-tabs button.active{
-    background:#ff7f00;
+/* ===== active ===== */
+.floor-btn.active{
+    background:linear-gradient(135deg,#ff7f00,#ffb347);
     color:white;
+
+    box-shadow:
+        0 0 18px rgba(255,127,0,.5),
+        0 10px 25px rgba(0,0,0,.25);
+
+    transform:translateY(-2px);
 }
 
+/* ===== MAPコンテナ（統一UI） ===== */
 .map-container{
     max-width:900px;
     margin:0 auto;
 
-    background:white;
+    background:rgba(255,255,255,.04);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+
+    border:1px solid rgba(255,127,0,.15);
     border-radius:20px;
 
     overflow:hidden;
 
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
 }
 
+/* ===== 中身（背景強化） ===== */
 .map-wrapper{
     height:500px;
     position:relative;
@@ -469,21 +515,47 @@ h1{
 
     touch-action:none;
     cursor:grab;
+
+    background:
+        radial-gradient(circle at 30% 20%, rgba(255,127,0,.08), transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(255,140,0,.05), transparent 50%),
+        repeating-linear-gradient(
+            45deg,
+            rgba(255,127,0,.02),
+            rgba(255,127,0,.02) 1px,
+            transparent 1px,
+            transparent 14px
+        );
 }
 
-.map-wrapper:active{cursor:grabbing;}
+.map-wrapper:active{
+    cursor:grabbing;
+}
 
+/* ===== 地図画像 ===== */
 .map-img{
     position:absolute;
     top:0;
     left:0;
 
     width:100%;
+
     display:none;
 
     transform-origin:center;
 }
 
+/* ===== スマホ対応 ===== */
+@media(max-width:768px){
+    .map-wrapper{
+        height:380px;
+    }
+
+    .floor-btn{
+        padding:8px 14px;
+        font-size:13px;
+    }
+}
 /* =========================
    フッター
 ========================= */
