@@ -13,7 +13,19 @@
 </head>
 
 <body>
+<div id="loader">
 
+    <div class="loader-content">
+
+        <h1>68th SEIKO FESTA</h1>
+
+        <div class="loader-line"></div>
+
+        <p>Loading...</p>
+
+    </div>
+
+</div>
 <!-- =========================
    ハンバーガー
 ========================= -->
@@ -849,6 +861,19 @@ function updateBoothFilter(){
     });
 
 }
+window.addEventListener("load",()=>{
+
+    setTimeout(()=>{
+
+        document.getElementById("loader").style.opacity="0";
+
+        setTimeout(()=>{
+            document.getElementById("loader").style.display="none";
+        },500);
+
+    },800);
+
+});
 
 </script>
 

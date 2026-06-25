@@ -15,6 +15,76 @@ body{
     color:white;
 }
 /* =========================
+   LOADING
+========================= */
+
+#loader{
+    position:fixed;
+    inset:0;
+
+    background:#0f0f14;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:99999;
+
+    transition:1s;
+}
+
+.loader-content{
+    text-align:center;
+}
+
+.loader-content h1{
+    color:#ff7f00;
+
+    font-size:clamp(40px,6vw,80px);
+
+    letter-spacing:5px;
+
+    text-shadow:
+        0 0 20px rgba(255,127,0,.5);
+}
+
+.loader-content p{
+    color:white;
+    margin-top:20px;
+}
+
+.loader-line{
+    width:250px;
+    height:4px;
+
+    margin:25px auto;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.1);
+
+    overflow:hidden;
+}
+
+.loader-line::before{
+    content:"";
+
+    display:block;
+
+    width:0;
+    height:100%;
+
+    background:#ff7f00;
+
+    animation:loading .8s linear forwards;
+}
+
+@keyframes loading{
+    to{
+        width:100%;
+    }
+}
+/* =========================
    背景模様
 ========================= */
 body::before{
@@ -556,64 +626,85 @@ h1{
 ========================= */
 .search-box-container{
     position:relative;
-    max-width:600px;
-    margin:0 auto 30px;
+
+    max-width:700px;
+    margin:0 auto 35px;
 }
 
-.search-input,
 #boothSearch{
     width:100%;
 
-    padding:16px 20px 16px 55px;
+    padding:18px 25px 18px 60px;
 
-    border:none;
-    border-radius:50px;
+    border-radius:999px;
 
-    background:rgba(255,255,255,.95);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.08),
+            rgba(255,255,255,.03)
+        );
+
+    backdrop-filter:blur(20px);
+
+    border:1px solid rgba(255,127,0,.15);
+
+    color:white;
 
     font-size:16px;
 
     box-shadow:
-        0 8px 25px rgba(0,0,0,.08),
-        0 0 0 2px rgba(255,127,0,.1);
+        0 10px 30px rgba(0,0,0,.25),
+        inset 0 0 15px rgba(255,127,0,.05);
 
     transition:.3s;
 }
 
-.search-input:focus,
 #boothSearch:focus{
     outline:none;
 
     transform:translateY(-2px);
 
+    border-color:rgba(255,127,0,.5);
+
     box-shadow:
-        0 12px 30px rgba(255,127,0,.15),
-        0 0 0 3px rgba(255,127,0,.3);
+        0 0 30px rgba(255,127,0,.25),
+        0 10px 30px rgba(0,0,0,.25);
+}
+
+#boothSearch::placeholder{
+    color:rgba(255,255,255,.5);
 }
 
 .search-icon{
     position:absolute;
 
-    left:20px;
+    left:22px;
     top:50%;
 
     transform:translateY(-50%);
 
     color:#ff7f00;
+
     font-size:18px;
+
+    text-shadow:
+        0 0 10px rgba(255,127,0,.5);
 
     pointer-events:none;
 }
 
-.search-input::placeholder,
-#boothSearch::placeholder{
-    color:#999;
-}
 #booth .content{
     background:rgba(255,255,255,.04);
+
     backdrop-filter:blur(25px);
+
     border:1px solid rgba(255,127,0,.08);
+
     border-radius:30px;
+
+    box-shadow:
+        0 0 50px rgba(255,127,0,.12);
 }
 /* =========================
    BOOTH（新デザイン）
@@ -875,35 +966,58 @@ h1{
 .floor-filter{
     display:flex;
     justify-content:center;
-    gap:12px;
+    gap:15px;
+
     flex-wrap:wrap;
-    margin:25px 0 35px;
+
+    margin:35px 0;
 }
 
 .floor-filter button{
+
+    min-width:80px;
+
     padding:12px 24px;
 
     border:none;
-    border-radius:50px;
 
-    background:rgba(255,255,255,.9);
-    color:#ff7f00;
+    border-radius:999px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,.08),
+            rgba(255,255,255,.03)
+        );
+
+    backdrop-filter:blur(20px);
+
+    border:1px solid rgba(255,127,0,.15);
+
+    color:#ffb347;
 
     font-weight:800;
-    font-size:14px;
+    letter-spacing:1px;
 
     cursor:pointer;
 
-    box-shadow:0 4px 15px rgba(0,0,0,.08);
+    transition:.3s;
 
-    transition:.25s;
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.2);
 }
 
 .floor-filter button:hover{
-    background:#ff7f00;
+
+    transform:
+        translateY(-3px)
+        scale(1.05);
+
     color:white;
-    transform:translateY(-3px);
-    box-shadow:0 8px 20px rgba(255,127,0,.25);
+
+    box-shadow:
+        0 0 25px rgba(255,127,0,.25),
+        0 10px 25px rgba(0,0,0,.3);
 }
 .back-btn{
     background:rgba(255,127,0,.15);
@@ -954,9 +1068,19 @@ h1{
 
 
 .floor-filter button.active{
-    background:#ff7f00;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ff7f00,
+            #ffb347
+        );
+
     color:white;
-    box-shadow:0 8px 20px rgba(255,127,0,.25);
+
+    box-shadow:
+        0 0 25px rgba(255,127,0,.5),
+        0 10px 25px rgba(255,127,0,.25);
 }
 .map-btn{
 
@@ -1414,14 +1538,12 @@ h1{
 
 .page[id$="-detail"] .content{
 
-    margin-top:0;
+    margin-top:120px;
 
     min-height:100vh;
 
     display:flex;
     flex-direction:column;
-    justify-content:center;
-    align-items:center;
 
     background:rgba(255,255,255,.05);
 
