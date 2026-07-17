@@ -1,880 +1,1020 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>68th SEIKO FESTA</title>
+    <title>68th SEIKO FESTA</title>
 
-<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 
-<!-- SNSアイコン -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- SNSアイコン -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        /* =================================
+       SVGピン＋中央に団体画像
+    ================================= */
+
+        #maps .map-marker {
+            position: absolute;
+
+            width: 36px;
+            height: 48px;
+
+            padding: 0;
+            border: 0;
+
+            background:
+                url("pin.svg") center / 100% 100% no-repeat;
+
+            overflow: visible;
+
+            /* ピンの先端を座標位置に合わせる */
+            transform: translate(-50%, -100%);
+
+            cursor: pointer;
+            z-index: 20;
+
+            filter: drop-shadow(0 5px 6px rgba(0, 0, 0, .4));
+            transition: transform .2s ease;
+        }
+
+        /* 古い文字を消す */
+        #maps .map-marker span,
+        #maps .map-marker b {
+            display: none !important;
+        }
+
+        /* ピン中央の団体画像 */
+        #maps .map-marker img {
+            position: absolute;
+
+            left: 50%;
+            top: 15px;
+
+            width: 21px;
+            height: 21px;
+
+            transform: translate(-50%, -50%);
+
+            object-fit: cover;
+            border-radius: 50%;
+
+            border: 2px solid #fff;
+            background: #fff;
+
+            pointer-events: none;
+        }
+
+        #maps .map-marker:hover {
+            transform:
+                translate(-50%, -100%) scale(1.12);
+        }
+
+        @media(max-width:768px) {
+            #maps .map-marker {
+                width: 32px;
+                height: 43px;
+            }
+
+            #maps .map-marker img {
+                top: 13px;
+                width: 18px;
+                height: 18px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-<div id="loader">
+    <div id="loader">
 
-    <div class="loader-content">
+        <div class="loader-content">
 
-        <h1>68th SEIKO FESTA</h1>
+            <h1>68th SEIKO FESTA</h1>
 
-        <div class="loader-line"></div>
+            <div class="loader-line"></div>
 
-        <p>Loading...</p>
+            <p>Loading...</p>
+
+        </div>
 
     </div>
-
-</div>
-<!-- =========================
+    <!-- =========================
    ハンバーガー
 ========================= -->
-<button class="menu-btn" id="menuBtn">
-    <span></span>
-    <span></span>
-    <span></span>
-</button>
+    <button class="menu-btn" id="menuBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 
-<div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu" id="mobileMenu">
 
-    
 
-    <a href="#" onclick="showPage('home')">HOME</a>
-    <a href="#" onclick="showPage('news')">NEWS</a>
-    <a href="#" onclick="showPage('maps')">MAP</a>
-    <a href="#" onclick="showPage('booth')">BOOTH</a>
-    <a href="#" onclick="showPage('schedule')">SCHEDULE</a>
 
-</div>
+        <a href="#" onclick="showPage('home')">HOME</a>
+        <a href="#" onclick="showPage('news')">NEWS</a>
+        <a href="#" onclick="showPage('maps')">MAP</a>
+        <a href="#" onclick="showPage('booth')">BOOTH</a>
+        <a href="#" onclick="showPage('schedule')">SCHEDULE</a>
 
-<!-- =========================
+    </div>
+
+    <!-- =========================
    PCボタン
 ========================= -->
-<div class="button-container">
+    <div class="button-container">
 
-<button class="circle-btn active" onclick="showPage('home')">HOME</button>
-    <button class="circle-btn" onclick="showPage('news')">NEWS</button>
-    <button class="circle-btn" onclick="showPage('booth')">BOOTH</button>
-    <button class="circle-btn" onclick="showPage('maps')">MAPS</button>
-    <button class="circle-btn" onclick="showPage('schedule')">SCHEDULE</button>
+        <button class="circle-btn active" onclick="showPage('home')">HOME</button>
+        <button class="circle-btn" onclick="showPage('news')">NEWS</button>
+        <button class="circle-btn" onclick="showPage('booth')">BOOTH</button>
+        <button class="circle-btn" onclick="showPage('maps')">MAPS</button>
+        <button class="circle-btn" onclick="showPage('schedule')">SCHEDULE</button>
 
-</div>
+    </div>
 
-<!-- =========================
+    <!-- =========================
    HOME
 ========================= -->
-<div class="page active" id="home">
+    <div class="page active" id="home">
 
-    <div class="content">
+        <div class="content">
 
-        <div class="countdown-container">
-            <p class="countdown-subtitle">COUNTDOWN TO THE OPENING</p>
+            <div class="countdown-container">
+                <p class="countdown-subtitle">COUNTDOWN TO THE OPENING</p>
 
-            <div class="countdown">
-                <div class="time-box"><span id="days">0</span><p>DAYS</p></div>
-                <div class="time-box"><span id="hours">0</span><p>HOURS</p></div>
-                <div class="time-box"><span id="minutes">0</span><p>MIN</p></div>
-                <div class="time-box"><span id="seconds">0</span><p>SEC</p></div>
+                <div class="countdown">
+                    <div class="time-box"><span id="days">0</span>
+                        <p>DAYS</p>
+                    </div>
+                    <div class="time-box"><span id="hours">0</span>
+                        <p>HOURS</p>
+                    </div>
+                    <div class="time-box"><span id="minutes">0</span>
+                        <p>MIN</p>
+                    </div>
+                    <div class="time-box"><span id="seconds">0</span>
+                        <p>SEC</p>
+                    </div>
+                </div>
             </div>
+
+            <h1>68th SEIKO FESTA</h1>
+
+            <p>ようこそ聖光祭へ！</p>
+
         </div>
-
-        <h1>68th SEIKO FESTA</h1>
-
-        <p>ようこそ聖光祭へ！</p>
 
     </div>
 
-</div> 
-
-<!-- =========================
+    <!-- =========================
    NEWS
 ========================= -->
-<div class="page" id="news">
-    <div class="content news-content">
+    <div class="page" id="news">
+        <div class="content news-content">
 
-        <h1>NEWS</h1>
+            <h1>NEWS</h1>
 
-        <div class="news-list">
+            <div class="news-list">
 
-            <div class="news-card">
-                <div class="news-date">2027/04/10</div>
-                <div class="news-text">文化祭開催決定</div>
-            </div>
+                <div class="news-card">
+                    <div class="news-date">2027/04/10</div>
+                    <div class="news-text">文化祭開催決定</div>
+                </div>
 
-            <div class="news-card">
-                <div class="news-date">2027/03/20</div>
-                <div class="news-text">出店募集開始</div>
+                <div class="news-card">
+                    <div class="news-date">2027/03/20</div>
+                    <div class="news-text">出店募集開始</div>
+                </div>
+
             </div>
 
         </div>
-
     </div>
-</div>
 
-<!-- =========================
+    <!-- =========================
    BOOTH
 ========================= -->
-<div class="page" id="booth">
-    <div class="content">
-        <h1>BOOTH</h1>
-        <p class="booth-subtitle">
-            Swipe to Explore
-        </p>
-        <!-- 検索バー -->
-        <div class="search-box-container">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <div class="page" id="booth">
+        <div class="content">
+            <h1>BOOTH</h1>
+            <p class="booth-subtitle">
+                Swipe to Explore
+            </p>
+            <!-- 検索バー -->
+            <div class="search-box-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
 
-            <input
-                 type="text"
-                 id="boothSearch"
-                 placeholder="ブース名 説明 場所で検索">
-        </div>
-
-        <div class="floor-filter">
-
-          <button onclick="filterFloor('all', this)">ALL</button>
-          <button onclick="filterFloor('1f', this)">1F</button>
-          <button onclick="filterFloor('2f', this)">2F</button>
-          <button onclick="filterFloor('3f', this)">3F</button>
-          <button onclick="filterFloor('4f', this)">4F</button>
-
-        </div>
-
-        <div class="booth-list">
-
-            <div class="booth-item booth-card"
-                 onclick="showPage('yakyu-detail')"
-                 data-floor="1f"
-                 data-key="打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？景品も用意してます！初心者も経験者も野球場へ集まれ！ リアル野球盤 グラウンド">
-
-                <img src="リアル野球盤.CWaH3bkx_1y7qp5.webp" alt="リアル野球盤">
-
-                <div class="booth-text">
-                    <h2>リアル野球盤</h2>
-                    <p class="place"> グラウンド（1階）</p>
-                    <p>
-                       打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？
-                       景品も用意してます！初心者も経験者も野球場へ集まれ！
-                    </p>
-                </div>
-
-        </div>
-
-        <div class="booth-item booth-card"
-             onclick="showPage('this-detail')"
-             data-floor="1f"
-            data-key="サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。高得点を取れば、豪華景品が手に入るかも？是非お越しください。 This is football グラウンド">
-
-           <img src="This is Football.CZp6gtR__Z3GCdF.webp" alt="This is Football">
-
-           <div class="booth-text">
-               <h2>This is football</h2>
-               <p class="place"> グラウンド（1階）</p>
-               <p>
-                   サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。
-                   高得点を取れば、豪華景品が手に入るかも？是非お越しください。
-               </p>
-           </div>
-
-        </div>
-
-            <div class="booth-item" data-key="美術 アート 絵画">
-                <img src="art.jpg" alt="美術部">
-                <div class="booth-text">
-                    <h2>美術部</h2>
-                    <p class="place">📍 美術室（3F）</p>
-                    <p>作品展示＆ポストカード配布</p>
-                </div>
+                <input type="text" id="boothSearch" placeholder="ブース名 説明 場所で検索">
             </div>
 
-            <div class="booth-item" data-key="鉄道 ジオラマ 模型">
-                <img src="train.jpg" alt="鉄道研究部">
-                <div class="booth-text">
-                    <h2>鉄道研究部</h2>
-                    <p class="place">📍 物理室（4F）</p>
-                    <p>巨大ジオラマ＆運転体験</p>
-                </div>
+            <div class="floor-filter">
+
+                <button onclick="filterFloor('all', this)">ALL</button>
+                <button onclick="filterFloor('1f', this)">1F</button>
+                <button onclick="filterFloor('2f', this)">2F</button>
+                <button onclick="filterFloor('3f', this)">3F</button>
+                <button onclick="filterFloor('4f', this)">4F</button>
+
             </div>
 
-            <div class="booth-item" data-key="パソコン ゲーム プログラミング">
-                <img src="pc.jpg" alt="パソコン部">
-                <div class="booth-text">
-                    <h2>パソコン部</h2>
-                    <p class="place">📍 情報教室（3F）</p>
-                    <p>自作ゲーム試遊コーナー</p>
-                </div>
-            </div>
+            <div class="booth-list">
 
+                <div class="booth-item booth-card" onclick="showPage('yakyu-detail')" data-floor="1f"
+                    data-key="打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？景品も用意してます！初心者も経験者も野球場へ集まれ！ リアル野球盤 グラウンド">
+
+                    <img src="リアル野球盤.CWaH3bkx_1y7qp5.webp" alt="リアル野球盤">
+
+                    <div class="booth-text">
+                        <h2>リアル野球盤</h2>
+                        <p class="place"> グラウンド（1階）</p>
+                        <p>
+                            打って投げて、目指せホームラン！リアル野球盤と的当てに挑戦しませんか？
+                            景品も用意してます！初心者も経験者も野球場へ集まれ！
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="booth-item booth-card" onclick="showPage('this-detail')" data-floor="1f"
+                    data-key="サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。高得点を取れば、豪華景品が手に入るかも？是非お越しください。 This is football グラウンド">
+
+                    <img src="This is Football.CZp6gtR__Z3GCdF.webp" alt="This is Football">
+
+                    <div class="booth-text">
+                        <h2>This is football</h2>
+                        <p class="place"> グラウンド（1階）</p>
+                        <p>
+                            サッカー部の展示ではキックターゲット、PK、ミニゲームを体験できます。
+                            高得点を取れば、豪華景品が手に入るかも？是非お越しください。
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="booth-item" data-key="美術 アート 絵画">
+                    <img src="art.jpg" alt="美術部">
+                    <div class="booth-text">
+                        <h2>美術部</h2>
+                        <p class="place">📍 美術室（3F）</p>
+                        <p>作品展示＆ポストカード配布</p>
+                    </div>
+                </div>
+
+                <div class="booth-item" data-key="鉄道 ジオラマ 模型">
+                    <img src="train.jpg" alt="鉄道研究部">
+                    <div class="booth-text">
+                        <h2>鉄道研究部</h2>
+                        <p class="place">📍 物理室（4F）</p>
+                        <p>巨大ジオラマ＆運転体験</p>
+                    </div>
+                </div>
+
+                <div class="booth-item" data-key="パソコン ゲーム プログラミング">
+                    <img src="pc.jpg" alt="パソコン部">
+                    <div class="booth-text">
+                        <h2>パソコン部</h2>
+                        <p class="place">📍 情報教室（3F）</p>
+                        <p>自作ゲーム試遊コーナー</p>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
-<!-- =========================
+    <!-- =========================
    This is football詳細
 ========================= -->
-<div class="page" id="this-detail">
+    <div class="page" id="this-detail">
 
-    <div class="content">
+        <div class="content">
 
-        <button class="back-btn"
-                onclick="showPage('booth')">
-            ← 戻る
-        </button>
+            <button class="back-btn" onclick="showPage('booth')">
+                ← 戻る
+            </button>
 
-        <div class="detail-header">
-            <h1>This is football</h1>
+            <div class="detail-header">
+                <h1>This is football</h1>
 
-            <p class="detail-place">
-                グラウンド（1F）
-            </p>
-        </div>
-
-        <div class="detail-main">
-
-            <img
-                src="This is Football.CZp6gtR__Z3GCdF.webp"
-                alt="This is football"
-                class="detail-image">
-
-            <div class="detail-text">
-
-                <p>
-                    サッカー部の展示ではキックターゲット、
-                    PK、ミニゲームを体験できます。
-                    高得点を取れば豪華景品が手に入るかも？
-                    是非お越しください。
+                <p class="detail-place">
+                    グラウンド（1F）
                 </p>
+            </div>
 
-                <button
-                    class="map-btn"
-                    onclick="openMapFloor('map1')">
+            <div class="detail-main">
 
-                    MAPで見る
+                <img src="This is Football.CZp6gtR__Z3GCdF.webp" alt="This is football" class="detail-image">
 
-                </button>
+                <div class="detail-text">
+
+                    <p>
+                        サッカー部の展示ではキックターゲット、
+                        PK、ミニゲームを体験できます。
+                        高得点を取れば豪華景品が手に入るかも？
+                        是非お越しください。
+                    </p>
+
+                    <button class="map-btn" onclick="openMapFloor('map1')">
+
+                        MAPで見る
+
+                    </button>
+
+                </div>
 
             </div>
 
         </div>
 
     </div>
-
-</div>
-<!-- =========================
+    <!-- =========================
    リアル野球盤詳細
 ========================= -->
-<div class="page" id="yakyu-detail">
+    <div class="page" id="yakyu-detail">
 
-    <div class="content">
+        <div class="content">
 
-        <button class="back-btn"
-                onclick="showPage('booth')">
-            ← 戻る
-        </button>
+            <button class="back-btn" onclick="showPage('booth')">
+                ← 戻る
+            </button>
 
-        <div class="detail-header">
-            <h1>リアル野球盤</h1>
+            <div class="detail-header">
+                <h1>リアル野球盤</h1>
 
-            <p class="detail-place">
-                グラウンド（1F）
-            </p>
+                <p class="detail-place">
+                    グラウンド（1F）
+                </p>
+            </div>
+
+            <div class="detail-main">
+
+                <img src="リアル野球盤.CWaH3bkx_1y7qp5.webp" alt="リアル野球盤" class="detail-image">
+
+                <div class="detail-text">
+
+                    <p>
+                        打って投げて、目指せホームラン！
+                        リアル野球盤と的当てに挑戦しませんか？
+                        景品も用意してます！
+                        初心者も経験者も野球場へ集まれ！
+                    </p>
+
+                    <button class="map-btn" onclick="openMapFloor('map1')">
+
+                        MAPで見る
+
+                    </button>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="detail-main">
+    </div>
 
-            <img
-                src="リアル野球盤.CWaH3bkx_1y7qp5.webp"
-                alt="リアル野球盤"
-                class="detail-image">
+    <!-- =========================
+   MAPS（オリジナルキャンパスマップ）
+========================= -->
+    <div class="page" id="maps">
+        <div class="content map-page-content">
+            <header class="map-page-header">
+                <div>
+                    <p class="map-kicker">EXPLORE THE CAMPUS</p>
+                    <h1>MAP</h1>
+                    <p class="map-guide">階を選び、地図をドラッグして校内を探せます。</p>
+                </div>
+                <div class="map-current-floor" aria-live="polite">
+                    <span>CURRENT FLOOR</span>
+                    <strong id="currentFloorLabel">1F</strong>
+                </div>
+            </header>
 
-            <div class="detail-text">
+            <div class="campus-map-layout">
+                <nav class="map-floor-nav" aria-label="階を選択">
+                    <button class="floor-btn active" data-floor="1F"
+                        onclick="showMap('map1', this)"><span>01</span><strong>1F</strong></button>
+                    <button class="floor-btn" data-floor="2F"
+                        onclick="showMap('map2', this)"><span>02</span><strong>2F</strong></button>
+                    <button class="floor-btn" data-floor="3F"
+                        onclick="showMap('map3', this)"><span>03</span><strong>3F</strong></button>
+                    <button class="floor-btn" data-floor="4F"
+                        onclick="showMap('map4', this)"><span>04</span><strong>4F</strong></button>
+                </nav>
 
-                <p>
-                    打って投げて、目指せホームラン！
-                    リアル野球盤と的当てに挑戦しませんか？
-                    景品も用意してます！
-                    初心者も経験者も野球場へ集まれ！
-                </p>
+                <section class="map-panel">
+                    <div class="map-panel-top">
+                        <div class="map-status"><i class="fa-solid fa-location-dot"></i><span
+                                id="mapStatusText">1階を表示中</span></div>
+                        <div class="map-hint"><i class="fa-solid fa-hand-pointer"></i> ドラッグ / ピンチで操作</div>
+                    </div>
 
-                <button
-                    class="map-btn"
-                    onclick="openMapFloor('map1')">
+                    <div class="map-wrapper" id="map-wrapper">
+                        <div class="map-stage active" id="map1">
+                            <img src="map1.8cgplEnB.svg" class="map-img" alt="校内マップ 1階" draggable="false">
+                            <button class="map-marker marker-yakyu" type="button" aria-label="リアル野球盤"
+                                onclick="openMapSpot(event, 'リアル野球盤', 'グラウンド（1F）', 'yakyu-detail')"><img
+                                    src="リアル野球盤.CWaH3bkx_1y7qp5.webp" alt=""></button>
+                            <button class="map-marker marker-football" type="button" aria-label="This is football"
+                                onclick="openMapSpot(event, 'This is football', 'グラウンド（1F）', 'this-detail')"><img
+                                    src="This is Football.CZp6gtR__Z3GCdF.webp" alt=""></button>
+                        </div>
+                        <div class="map-stage" id="map2"><img src="map2.Cs3qd4O4.svg" class="map-img" alt="校内マップ 2階"
+                                draggable="false"></div>
+                        <div class="map-stage" id="map3"><img src="map3.BRoANSkX.svg" class="map-img" alt="校内マップ 3階"
+                                draggable="false"></div>
+                        <div class="map-stage" id="map4"><img src="map4.Dc8Ov8CJ.svg" class="map-img" alt="校内マップ 4階"
+                                draggable="false"></div>
+                    </div>
 
-                    MAPで見る
+                    <div class="map-controls" aria-label="地図操作">
+                        <button type="button" onclick="zoomMap(0.2)" aria-label="拡大"><i
+                                class="fa-solid fa-plus"></i></button>
+                        <button type="button" onclick="zoomMap(-0.2)" aria-label="縮小"><i
+                                class="fa-solid fa-minus"></i></button>
+                        <button type="button" onclick="resetMapView()" aria-label="表示をリセット"><i
+                                class="fa-solid fa-rotate-left"></i></button>
+                    </div>
 
+                    <aside class="map-spot-card" id="mapSpotCard" aria-hidden="true">
+                        <button class="spot-close" type="button" onclick="closeMapSpot()" aria-label="閉じる">×</button>
+                        <p>SELECTED BOOTH</p>
+                        <h2 id="spotTitle"></h2>
+                        <div id="spotPlace"></div>
+                        <button class="spot-detail-btn" type="button" id="spotDetailBtn">詳細を見る <i
+                                class="fa-solid fa-arrow-right"></i></button>
+                    </aside>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================
+   SCHEDULE
+========================= -->
+    <div class="page" id="schedule">
+        <div class="content">
+
+            <h1>SCHEDULE</h1>
+
+            <!-- DAY切替 -->
+            <div class="day-switch">
+
+                <button class="day-btn active" onclick="setDay('day1', event)">
+                    <small>DAY1</small><br>4/25
+                </button>
+
+                <button class="day-btn" onclick="setDay('day2', event)">
+                    <small>DAY2</small><br>4/26
                 </button>
 
             </div>
 
-        </div>
+            <!-- 上：場所 -->
+            <div class="room-header">
+                <div></div>
+                <div>外ステージ</div>
+                <div>講堂</div>
+                <div>小講堂</div>
+                <div>音楽室2</div>
+            </div>
 
-    </div>
+            <!-- 本体 -->
+            <div class="timetable">
 
-</div>
+                <!-- 左：時間 -->
+                <div class="time-axis">
+                    <div>09:00</div>
+                    <div>10:00</div>
+                    <div>11:00</div>
+                    <div>12:00</div>
+                    <div>13:00</div>
+                    <div>14:00</div>
+                    <div>15:00</div>
+                    <div>16:00</div>
+                    <div>17:00</div>
+                </div>
 
-<!-- =========================
-   MAPS（ズーム対応）
-========================= -->
-<div class="page" id="maps">
-    <div class="content">
+                <!-- 右：会場 -->
+                <div class="rooms">
 
-        <h1>MAPS</h1>
+                    <div class="room" data-room="outside"></div>
+                    <div class="room" data-room="hall"></div>
+                    <div class="room" data-room="small"></div>
+                    <div class="room" data-room="music"></div>
 
-        <div class="floor-tabs">
-            <button class="floor-btn" onclick="showMap('map1', this)">1F</button>
-            <button class="floor-btn" onclick="showMap('map2', this)">2F</button>
-            <button class="floor-btn" onclick="showMap('map3', this)">3F</button>
-            <button class="floor-btn" onclick="showMap('map4', this)">4F</button>
-        </div>
-
-        <div class="map-container">
-            <div class="map-wrapper" id="mapWrapper">
-
-                <img id="map1" class="map-img" src="map1.8cgplEnB.svg">
-                <img id="map2" class="map-img" src="map2.Cs3qd4O4.svg">
-                <img id="map3" class="map-img" src="map3.BRoANSkX.svg">
-                <img id="map4" class="map-img" src="map4.Dc8Ov8CJ.svg">
+                </div>
 
             </div>
+
         </div>
-
-    </div>
-</div>
-
-<!-- =========================
-   SCHEDULE
-========================= -->
-<div class="page" id="schedule">
-  <div class="content">
-
-    <h1>SCHEDULE</h1>
-
-    <!-- DAY切替 -->
-    <div class="day-switch">
-
-      <button class="day-btn active" onclick="setDay('day1', event)">
-        <small>DAY1</small><br>4/25
-      </button>
-
-      <button class="day-btn" onclick="setDay('day2', event)">
-        <small>DAY2</small><br>4/26
-      </button>
-
     </div>
 
-    <!-- 上：場所 -->
-    <div class="room-header">
-      <div></div>
-      <div>外ステージ</div>
-      <div>講堂</div>
-      <div>小講堂</div>
-      <div>音楽室2</div>
-    </div>
-
-    <!-- 本体 -->
-    <div class="timetable">
-
-      <!-- 左：時間 -->
-      <div class="time-axis">
-        <div>09:00</div>
-        <div>10:00</div>
-        <div>11:00</div>
-        <div>12:00</div>
-        <div>13:00</div>
-        <div>14:00</div>
-        <div>15:00</div>
-        <div>16:00</div>
-        <div>17:00</div>
-      </div>
-
-      <!-- 右：会場 -->
-      <div class="rooms">
-
-        <div class="room" data-room="outside"></div>
-        <div class="room" data-room="hall"></div>
-        <div class="room" data-room="small"></div>
-        <div class="room" data-room="music"></div>
-
-      </div>
-
-    </div>
-
-  </div>
-</div>
-
-<!-- =========================
+    <!-- =========================
    JS（全部ここに入ってる）
 ========================= -->
-<script>
+    <script>
 
-const events = {
-  day1: [
-    { title:"開会式", room:"outside", start:"09:00", end:"09:30" },
-    { title:"ダンス部", room:"outside", start:"10:00", end:"11:00" },
-    { title:"吹奏楽部", room:"hall", start:"10:00", end:"11:30" },
-    { title:"クイズ大会", room:"small", start:"11:00", end:"12:00" },
-    { title:"軽音ライブ", room:"music", start:"11:00", end:"13:00" }
-  ],
+        const events = {
+            day1: [
+                { title: "開会式", room: "outside", start: "09:00", end: "09:30" },
+                { title: "ダンス部", room: "outside", start: "10:00", end: "11:00" },
+                { title: "吹奏楽部", room: "hall", start: "10:00", end: "11:30" },
+                { title: "クイズ大会", room: "small", start: "11:00", end: "12:00" },
+                { title: "軽音ライブ", room: "music", start: "11:00", end: "13:00" }
+            ],
 
-  day2: [
-    { title:"オープニング", room:"outside", start:"09:30", end:"10:00" },
-    { title:"バンドライブ", room:"music", start:"10:00", end:"11:30" },
-    { title:"演劇", room:"hall", start:"11:00", end:"12:30" }
-  ]
-};
+            day2: [
+                { title: "オープニング", room: "outside", start: "09:30", end: "10:00" },
+                { title: "バンドライブ", room: "music", start: "10:00", end: "11:30" },
+                { title: "演劇", room: "hall", start: "11:00", end: "12:30" }
+            ]
+        };
 
-let currentDay = "day1";
+        let currentDay = "day1";
 
-/* 時間変換 */
-function toMin(t){
-  const [h,m] = t.split(":").map(Number);
-  return h*60 + m;
-}
+        /* 時間変換 */
+        function toMin(t) {
+            const [h, m] = t.split(":").map(Number);
+            return h * 60 + m;
+        }
 
-/* DAY切替 */
-function setDay(day, e){
+        /* DAY切替 */
+        function setDay(day, e) {
 
-  currentDay = day;
+            currentDay = day;
 
-  document.querySelectorAll(".day-btn")
-    .forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".day-btn")
+                .forEach(b => b.classList.remove("active"));
 
-  e.target.classList.add("active");
+            e.target.classList.add("active");
 
-  renderSchedule();
-}
+            renderSchedule();
+        }
 
-/* 描画 */
-function renderSchedule(){
+        /* 描画 */
+        function renderSchedule() {
 
-  const start = 9 * 60;
-  const end = 17 * 60;
-  const total = end - start;
+            const start = 9 * 60;
+            const end = 17 * 60;
+            const total = end - start;
 
-  const dayEvents = (events[currentDay] || [])
-    .slice()
-    .sort((a, b) => toMin(a.start) - toMin(b.start));
+            const dayEvents = (events[currentDay] || [])
+                .slice()
+                .sort((a, b) => toMin(a.start) - toMin(b.start));
 
-  let index = 0;
+            let index = 0;
 
-  document.querySelectorAll(".room").forEach(room => {
+            document.querySelectorAll(".room").forEach(room => {
 
-    room.innerHTML = ""; // ←毎回リセット（超重要）
+                room.innerHTML = ""; // ←毎回リセット（超重要）
 
-    const roomName = room.dataset.room;
+                const roomName = room.dataset.room;
 
-    dayEvents
-      .filter(e => e.room === roomName)
-      .forEach(e => {
+                dayEvents
+                    .filter(e => e.room === roomName)
+                    .forEach(e => {
 
-        const top = ((toMin(e.start) - start) / total) * 100;
-        const height = ((toMin(e.end) - toMin(e.start)) / total) * 100;
+                        const top = ((toMin(e.start) - start) / total) * 100;
+                        const height = ((toMin(e.end) - toMin(e.start)) / total) * 100;
 
-        const el = document.createElement("div");
-        el.className = "event-block";
+                        const el = document.createElement("div");
+                        el.className = "event-block";
 
-        el.textContent = e.title;
+                        el.textContent = e.title;
 
-        el.style.top = top + "%";
-        el.style.height = height + "%";
+                        el.style.top = top + "%";
+                        el.style.height = height + "%";
 
-        // ⭐ここが「順番に出る」本体
-        el.style.animationDelay = (index * 0.12) + "s";
-        index++;
+                        // ⭐ここが「順番に出る」本体
+                        el.style.animationDelay = (index * 0.12) + "s";
+                        index++;
 
-        room.appendChild(el);
-      });
-  });
-}
+                        room.appendChild(el);
+                    });
+            });
+        }
 
-/* 初期表示 */
-window.addEventListener("DOMContentLoaded", renderSchedule);
-/* 初期表示 */
+        /* 初期表示 */
+        window.addEventListener("DOMContentLoaded", renderSchedule);
+        /* 初期表示 */
 
-</script>
-<!-- =========================
+    </script>
+    <!-- =========================
    フッター
 ========================= -->
-<footer class="site-footer">
+    <footer class="site-footer">
 
-    <!-- 上段 -->
-    <div class="footer-top">
+        <!-- 上段 -->
+        <div class="footer-top">
 
-        <div class="footer-title">68th SEIKO FESTA</div>
+            <div class="footer-title">68th SEIKO FESTA</div>
 
-        <div class="footer-subtitle">
-            聖光学院中学校高等学校 第68回聖光祭
-        </div>
-
-        <!-- アクセス -->
-        <div class="footer-access">
-
-            <div class="access-title">ACCESS</div>
-
-            <div class="access-text">
-                神奈川県横浜市中区山手町<br>
-                JR根岸線「山手駅」徒歩
+            <div class="footer-subtitle">
+                聖光学院中学校高等学校 第68回聖光祭
             </div>
 
-            <a class="map-link" href="https://maps.google.com/?cid=11012242495815513370&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF&hl=ja&gl=JP&source=embed" target="_blank">
-                📍 Google Mapsで開く
-            </a>
+            <!-- アクセス -->
+            <div class="footer-access">
+
+                <div class="access-title">ACCESS</div>
+
+                <div class="access-text">
+                    神奈川県横浜市中区山手町<br>
+                    JR根岸線「山手駅」徒歩
+                </div>
+
+                <a class="map-link"
+                    href="https://maps.google.com/?cid=11012242495815513370&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAMYASAF&hl=ja&gl=JP&source=embed"
+                    target="_blank">
+                    📍 Google Mapsで開く
+                </a>
+
+            </div>
 
         </div>
 
-    </div>
+        <!-- 下段 -->
+        <div class="footer-bottom">
 
-    <!-- 下段 -->
-    <div class="footer-bottom">
+            <div class="sns-links">
 
-        <div class="sns-links">
+                <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                <a href="#"><i class="fa-brands fa-youtube"></i></a>
+                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#"><i class="fa-brands fa-tiktok"></i></a>
 
-            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="#"><i class="fa-brands fa-youtube"></i></a>
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+            </div>
+
+            <p class="copyright">
+                © 2027 SEIKO FESTA All Rights Reserved.
+            </p>
 
         </div>
 
-        <p class="copyright">
-            © 2027 SEIKO FESTA All Rights Reserved.
-        </p>
-
-    </div>
-
-</footer>
-<!-- =========================
+    </footer>
+    <!-- =========================
    JS
 ========================= -->
-<script>
-let currentFloor = "all";
-
-/* ページ切替 */
-function showPage(id){
-
-    document.querySelectorAll(".page").forEach(page=>{
-        page.classList.remove("active");
-    });
-
-    document.getElementById(id).classList.add("active");
-
-    closeMenu();
-
-    // PCボタンの光る処理
-    document.querySelectorAll(".circle-btn").forEach(btn=>{
-        btn.classList.remove("active");
-    });
-
-    const activeBtn = document.querySelector(
-        `.circle-btn[onclick="showPage('${id}')"]`
-    );
-
-    if(activeBtn){
-        activeBtn.classList.add("active");
-    }
-
-    window.scrollTo(0,0);
-}
-
-/* ハンバーガー */
-const menuBtn = document.getElementById("menuBtn");
-const mobileMenu = document.getElementById("mobileMenu");
-
-function closeMenu(){
-    mobileMenu.classList.remove("show");
-    menuBtn.classList.remove("active");
-}
-
-function openMenu(){
-    mobileMenu.classList.add("show");
-    menuBtn.classList.add("active");
-}
-
-function toggleMenu(){
-    if(mobileMenu.classList.contains("show")){
-        closeMenu();
-    }else{
-        openMenu();
-    }
-}
-
-menuBtn.addEventListener("click", toggleMenu);
-
-/* =========================
-   MAP
-========================= */
-
-let scale = 1;
-let posX = 0;
-let posY = 0;
-
-let activeMap = null;
-
-/* MAP切替 */
-function showMap(id, btn){
-
-    document.querySelectorAll(".map-img").forEach(img=>{
-        img.style.display = "none";
-    });
-
-    const el = document.getElementById(id);
-
-    el.style.display = "block";
-
-    activeMap = el;
-
-    scale = 1;
-    posX = 0;
-    posY = 0;
-
-    updateMap();
-
-    document.querySelectorAll(".floor-btn").forEach(button=>{
-        button.classList.remove("active");
-    });
-
-    if(btn){
-        btn.classList.add("active");
-    }
-}
-
-/* =========================
-   ズーム・ドラッグ
-========================= */
-
-const wrapper = document.getElementById("mapWrapper");
-
-let isDown = false;
-let startX = 0;
-let startY = 0;
-let lastDistance = 0;
-
-/* PCホイールズーム */
-wrapper.addEventListener("wheel",(e)=>{
-
-    e.preventDefault();
-
-    scale += (e.deltaY < 0 ? 0.1 : -0.1);
-
-    if(scale < 0.5) scale = 0.5;
-    if(scale > 5) scale = 5;
-
-    updateMap();
-
-});
-
-/* PCドラッグ開始 */
-wrapper.addEventListener("mousedown",(e)=>{
-
-    isDown = true;
-
-    startX = e.clientX - posX;
-    startY = e.clientY - posY;
-
-});
-
-/* PCドラッグ中 */
-wrapper.addEventListener("mousemove",(e)=>{
-
-    if(!isDown) return;
-
-    posX = e.clientX - startX;
-    posY = e.clientY - startY;
-
-    updateMap();
-
-});
-
-/* PCドラッグ終了 */
-wrapper.addEventListener("mouseup",()=>{
-    isDown = false;
-});
-
-wrapper.addEventListener("mouseleave",()=>{
-    isDown = false;
-});
-
-/* =========================
-   スマホドラッグ
-========================= */
-
-wrapper.addEventListener("touchstart",(e)=>{
-
-    if(e.touches.length === 1){
-
-        isDown = true;
-
-        startX = e.touches[0].clientX - posX;
-        startY = e.touches[0].clientY - posY;
-
-    }
-
-},{passive:false});
-
-wrapper.addEventListener("touchmove",(e)=>{
-
-    /* 1本指ドラッグ */
-    if(isDown && e.touches.length === 1){
-
-        posX = e.touches[0].clientX - startX;
-        posY = e.touches[0].clientY - startY;
-
-        updateMap();
-    }
-
-    /* 2本指ピンチズーム */
-    if(e.touches.length === 2){
-
-        e.preventDefault();
-
-        const dx =
-            e.touches[0].clientX -
-            e.touches[1].clientX;
-
-        const dy =
-            e.touches[0].clientY -
-            e.touches[1].clientY;
-
-        const distance =
-            Math.sqrt(dx * dx + dy * dy);
-
-        if(lastDistance){
-
-            scale *= distance / lastDistance;
-
-            if(scale < 0.5) scale = 0.5;
-            if(scale > 5) scale = 5;
-
+    <script>
+        let currentFloor = "all";
+
+        /* ページ切替 */
+        function showPage(id) {
+
+            document.querySelectorAll(".page").forEach(page => {
+                page.classList.remove("active");
+            });
+
+            document.getElementById(id).classList.add("active");
+
+            closeMenu();
+
+            // PCボタンの光る処理
+            document.querySelectorAll(".circle-btn").forEach(btn => {
+                btn.classList.remove("active");
+            });
+
+            const activeBtn = document.querySelector(
+                `.circle-btn[onclick="showPage('${id}')"]`
+            );
+
+            if (activeBtn) {
+                activeBtn.classList.add("active");
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        /* ハンバーガー */
+        const menuBtn = document.getElementById("menuBtn");
+        const mobileMenu = document.getElementById("mobileMenu");
+
+        function closeMenu() {
+            mobileMenu.classList.remove("show");
+            menuBtn.classList.remove("active");
+        }
+
+        function openMenu() {
+            mobileMenu.classList.add("show");
+            menuBtn.classList.add("active");
+        }
+
+        function toggleMenu() {
+            if (mobileMenu.classList.contains("show")) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        }
+
+        menuBtn.addEventListener("click", toggleMenu);
+
+        /* =========================
+           MAP
+        ========================= */
+        let scale = 1;
+        let posX = 0;
+        let posY = 0;
+        let activeMap = null;
+        let isDown = false;
+        let startX = 0;
+        let startY = 0;
+        let lastDistance = 0;
+
+        const wrapper = document.getElementById("map-wrapper");
+
+        function clampScale(value) {
+            return Math.min(3.5, Math.max(0.8, value));
+        }
+
+        function showMap(id, btn) {
+            document.querySelectorAll(".map-stage").forEach(stage => {
+                stage.classList.remove("active");
+                stage.style.transform = "";
+            });
+
+            activeMap = document.getElementById(id);
+            if (!activeMap) return;
+            activeMap.classList.add("active");
+
+            document.querySelectorAll(".map-floor-nav .floor-btn").forEach(button => {
+                button.classList.remove("active");
+            });
+
+            const targetButton = btn || document.querySelector(`.map-floor-nav .floor-btn[onclick*="${id}"]`);
+            if (targetButton) targetButton.classList.add("active");
+
+            const floor = targetButton?.dataset.floor || id.replace("map", "") + "F";
+            const label = document.getElementById("currentFloorLabel");
+            const status = document.getElementById("mapStatusText");
+            if (label) label.textContent = floor;
+            if (status) status.textContent = `${floor.replace("F", "")}階を表示中`;
+
+            closeMapSpot();
+            resetMapView();
+        }
+
+        function updateMap() {
+            if (!activeMap) return;
+            activeMap.style.transform = `translate3d(${posX}px, ${posY}px, 0) scale(${scale})`;
+        }
+
+        function zoomMap(amount) {
+            scale = clampScale(scale + amount);
             updateMap();
         }
 
-        lastDistance = distance;
-    }
-
-},{passive:false});
-
-wrapper.addEventListener("touchend",()=>{
-
-    isDown = false;
-    lastDistance = 0;
-
-});
-
-/* =========================
-   更新
-========================= */
-
-function updateMap(){
-
-    if(!activeMap) return;
-
-    activeMap.style.transform =
-        `translate(${posX}px, ${posY}px) scale(${scale})`;
-}
-
-/* =========================
-   初期表示
-========================= */
-
-window.addEventListener("DOMContentLoaded",()=>{
-
-    showMap("map1");
-
-});
-
-/* カウントダウン */
-const target = new Date("2027-04-23T09:00:00+09:00");
-
-function countdown(){
-
-    const now = new Date();
-    const diff = target - now;
-
-    document.getElementById("days").textContent = Math.floor(diff/86400000);
-    document.getElementById("hours").textContent = Math.floor(diff/3600000%24);
-    document.getElementById("minutes").textContent = Math.floor(diff/60000%60);
-    document.getElementById("seconds").textContent = Math.floor(diff/1000%60);
-}
-
-setInterval(countdown,1000);
-countdown();
-const boothSearch = document.getElementById("boothSearch");
-const booths = document.querySelectorAll(".booth-item");
-
-boothSearch.addEventListener(
-    "input",
-    updateBoothFilter
-);
-function filterFloor(floor, button){
-
-    currentFloor = floor;
-
-    document
-        .querySelectorAll(".floor-filter button")
-        .forEach(btn =>
-            btn.classList.remove("active")
-        );
-
-    if(button){
-        button.classList.add("active");
-    }
-
-    updateBoothFilter();
-
-}   
-   function openMapFloor(mapId){
-
-      showPage("maps");
-
-      showMap(mapId);
-
-}
-function updateBoothFilter(){
-
-    const keyword =
-        document.getElementById("boothSearch")
-        .value
-        .toLowerCase();
-
-    const booths =
-        document.querySelectorAll(".booth-item");
-
-    booths.forEach(item=>{
-
-        const text =
-            (item.dataset.key || "")
-            .toLowerCase();
-
-        const floorMatch =
-            currentFloor === "all" ||
-            item.dataset.floor === currentFloor;
-
-        const keywordMatch =
-            text.includes(keyword);
-
-        if(floorMatch && keywordMatch){
-            item.classList.remove("hide");
-        }else{
-            item.classList.add("hide");
+        function resetMapView() {
+            scale = 1;
+            posX = 0;
+            posY = 0;
+            updateMap();
         }
 
-    });
+        function openMapSpot(event, title, place, detailPage) {
+            event.stopPropagation();
+            const card = document.getElementById("mapSpotCard");
+            document.getElementById("spotTitle").textContent = title;
+            document.getElementById("spotPlace").textContent = place;
+            const detailButton = document.getElementById("spotDetailBtn");
+            detailButton.onclick = () => showPage(detailPage);
+            card.classList.add("show");
+            card.setAttribute("aria-hidden", "false");
+        }
 
-}
-window.addEventListener("load",()=>{
+        function closeMapSpot() {
+            const card = document.getElementById("mapSpotCard");
+            if (!card) return;
+            card.classList.remove("show");
+            card.setAttribute("aria-hidden", "true");
+        }
 
-    setTimeout(()=>{
+        if (wrapper) {
+            wrapper.addEventListener("wheel", event => {
+                event.preventDefault();
+                scale = clampScale(scale + (event.deltaY < 0 ? 0.12 : -0.12));
+                updateMap();
+            }, { passive: false });
 
-        document.getElementById("loader").style.opacity="0";
+            wrapper.addEventListener("mousedown", event => {
+                if (event.target.closest(".map-marker")) return;
+                isDown = true;
+                wrapper.classList.add("dragging");
+                startX = event.clientX - posX;
+                startY = event.clientY - posY;
+            });
 
-        setTimeout(()=>{
-            document.getElementById("loader").style.display="none";
-        },500);
+            window.addEventListener("mousemove", event => {
+                if (!isDown) return;
+                posX = event.clientX - startX;
+                posY = event.clientY - startY;
+                updateMap();
+            });
 
-    },800);
+            window.addEventListener("mouseup", () => {
+                isDown = false;
+                wrapper.classList.remove("dragging");
+            });
 
-});
+            wrapper.addEventListener("dblclick", event => {
+                if (event.target.closest(".map-marker")) return;
+                zoomMap(0.35);
+            });
 
-</script>
+            wrapper.addEventListener("touchstart", event => {
+                if (event.touches.length === 1 && !event.target.closest(".map-marker")) {
+                    isDown = true;
+                    startX = event.touches[0].clientX - posX;
+                    startY = event.touches[0].clientY - posY;
+                }
+
+                if (event.touches.length === 2) {
+                    const dx = event.touches[0].clientX - event.touches[1].clientX;
+                    const dy = event.touches[0].clientY - event.touches[1].clientY;
+                    lastDistance = Math.hypot(dx, dy);
+                }
+            }, { passive: false });
+
+            wrapper.addEventListener("touchmove", event => {
+                event.preventDefault();
+
+                if (isDown && event.touches.length === 1) {
+                    posX = event.touches[0].clientX - startX;
+                    posY = event.touches[0].clientY - startY;
+                    updateMap();
+                }
+
+                if (event.touches.length === 2) {
+                    const dx = event.touches[0].clientX - event.touches[1].clientX;
+                    const dy = event.touches[0].clientY - event.touches[1].clientY;
+                    const distance = Math.hypot(dx, dy);
+                    if (lastDistance) {
+                        scale = clampScale(scale * (distance / lastDistance));
+                        updateMap();
+                    }
+                    lastDistance = distance;
+                }
+            }, { passive: false });
+
+            wrapper.addEventListener("touchend", () => {
+                isDown = false;
+                lastDistance = 0;
+            });
+        }
+
+        window.addEventListener("DOMContentLoaded", () => showMap("map1"));
+
+        /* カウントダウン */
+        const target = new Date("2027-04-23T09:00:00+09:00");
+
+        function countdown() {
+
+            const now = new Date();
+            const diff = target - now;
+
+            document.getElementById("days").textContent = Math.floor(diff / 86400000);
+            document.getElementById("hours").textContent = Math.floor(diff / 3600000 % 24);
+            document.getElementById("minutes").textContent = Math.floor(diff / 60000 % 60);
+            document.getElementById("seconds").textContent = Math.floor(diff / 1000 % 60);
+        }
+
+        setInterval(countdown, 1000);
+        countdown();
+        const boothSearch = document.getElementById("boothSearch");
+        const booths = document.querySelectorAll(".booth-item");
+
+        boothSearch.addEventListener(
+            "input",
+            updateBoothFilter
+        );
+        function filterFloor(floor, button) {
+
+            currentFloor = floor;
+
+            document
+                .querySelectorAll(".floor-filter button")
+                .forEach(btn =>
+                    btn.classList.remove("active")
+                );
+
+            if (button) {
+                button.classList.add("active");
+            }
+
+            updateBoothFilter();
+
+        }
+        function openMapFloor(mapId) {
+
+            showPage("maps");
+
+            showMap(mapId);
+
+        }
+        function updateBoothFilter() {
+
+            const keyword =
+                document.getElementById("boothSearch")
+                    .value
+                    .toLowerCase();
+
+            const booths =
+                document.querySelectorAll(".booth-item");
+
+            booths.forEach(item => {
+
+                const text =
+                    (item.dataset.key || "")
+                        .toLowerCase();
+
+                const floorMatch =
+                    currentFloor === "all" ||
+                    item.dataset.floor === currentFloor;
+
+                const keywordMatch =
+                    text.includes(keyword);
+
+                if (floorMatch && keywordMatch) {
+                    item.classList.remove("hide");
+                } else {
+                    item.classList.add("hide");
+                }
+
+            });
+
+        }
+        window.addEventListener("load", () => {
+
+            setTimeout(() => {
+
+                document.getElementById("loader").style.opacity = "0";
+
+                setTimeout(() => {
+                    document.getElementById("loader").style.display = "none";
+                }, 500);
+
+            }, 800);
+
+        });
+        /* =========================
+           ピン位置取得モード
+           地図画像をクリックすると、その場所の座標を表示
+        ========================= */
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const mapWrapper = document.getElementById("map-wrapper");
+
+            if (!mapWrapper) {
+                console.error("map-wrapper が見つかりません");
+                return;
+            }
+
+            mapWrapper.addEventListener("click", async (event) => {
+
+                // ピンや操作ボタンを押したときは座標を表示しない
+                if (event.target.closest(".map-marker, .map-controls, .map-spot-card")) {
+                    return;
+                }
+
+                const activeStage = mapWrapper.querySelector(".map-stage.active");
+                const mapImage = activeStage?.querySelector(".map-img");
+
+                if (!mapImage) {
+                    console.error("表示中の地図画像が見つかりません");
+                    return;
+                }
+
+                // 拡大・移動後でも地図画像そのものを基準に計算する
+                const rect = mapImage.getBoundingClientRect();
+
+                const x = ((event.clientX - rect.left) / rect.width) * 100;
+                const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+                // 地図画像の外側をクリックした場合は何もしない
+                if (x < 0 || x > 100 || y < 0 || y > 100) {
+                    return;
+                }
+
+                const result = `left:${x.toFixed(1)}%; top:${y.toFixed(1)}%;`;
+
+                console.log(result);
+
+                try {
+                    await navigator.clipboard.writeText(result);
+                } catch (error) {
+                    // file:// ではクリップボードが使えない場合がある
+                }
+
+                alert(result);
+            });
+
+        });
+    </script>
 
 </body>
+
 </html>
