@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="第68回聖光祭の展示場所を探せる全画面校内マップ。">
+  <title>CAMPUS MAP | 68th SEIKO FESTA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="map.css">
+  <script src="site-data.js"></script>
+</head>
+<body>
+  <header class="map-header">
+    <a class="back-link" href="index.html"><span>←</span> SITE TOP</a>
+    <div class="map-title"><b>CAMPUS MAP</b><small>展示場所をタップして紹介を見る</small></div>
+    <div class="floor-name" id="floor-name">1F <span>/ GROUND FLOOR</span></div>
+  </header>
+
+  <main class="map-app">
+    <aside class="map-sidebar">
+      <div class="sidebar-heading">
+        <p>EXHIBITION FINDER</p>
+        <strong><span id="sidebar-count">0</span> BOOTHS</strong>
+      </div>
+
+      <label class="map-search">
+        <span>⌕</span>
+        <input id="map-search" type="search" placeholder="展示名・場所で検索" aria-label="展示を検索">
+      </label>
+
+      <div class="booth-list" id="booth-list"></div>
+      <p class="list-empty" id="list-empty" hidden>展示が見つかりませんでした。</p>
+    </aside>
+
+    <section class="map-stage" aria-label="校内マップ">
+      <div class="floor-tabs" aria-label="表示する階">
+        <button type="button" class="active" data-floor="1F">1F</button>
+        <button type="button" data-floor="2F">2F</button>
+        <button type="button" data-floor="3F">3F</button>
+        <button type="button" data-floor="4F">4F</button>
+      </div>
+
+      <div class="map-viewport" id="map-viewport">
+        <div class="map-transform" id="map-transform">
+          <div class="floor-map" id="floor-map" role="img" aria-label="校内マップ 1階"></div>
+          <div class="pin-layer" id="pin-layer"></div>
+        </div>
+      </div>
+
+      <div class="map-hint"><span></span> ピンを押すと展示紹介へ移動します</div>
+
+      <div class="map-controls" aria-label="マップ操作">
+        <button type="button" id="zoom-out" aria-label="縮小">−</button>
+        <button type="button" id="zoom-reset" aria-label="表示をリセット">100%</button>
+        <button type="button" id="zoom-in" aria-label="拡大">＋</button>
+      </div>
+
+      <aside class="map-booth-sheet" id="map-booth-sheet" aria-live="polite" aria-hidden="true">
+        <button class="sheet-close" id="sheet-close" type="button" aria-label="展示情報を閉じる">×</button>
+        <div class="sheet-marker" id="sheet-marker">01</div>
+        <div class="sheet-copy">
+          <p><span id="sheet-floor">1F</span> · <span id="sheet-place">場所</span></p>
+          <h2 id="sheet-title">展示名</h2>
+          <small id="sheet-description">展示の紹介</small>
+        </div>
+        <a class="sheet-detail" id="sheet-detail" href="booth.html">詳細を見る <span>→</span></a>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const data = window.SITE_DATA || { booths: [] };
+    const booths = Array.isArray(data.booths) ? data.booths : [];
+    const floorFiles = {
+      "1F": "map1.8cgplEnB.svg",
+      "2F": "map2.Cs3qd4O4.svg",
+      "3F": "map3.BRoANSkX.svg",
+      "4F": "map4.Dc8Ov8CJ.svg"
+    };
+    const floorLabels = {
+      "1F": "GROUND FLOOR",
+      "2F": "SECOND FLOOR",
+      "3F": "THIRD FLOOR",
+      "4F": "FOURTH FLOOR"
+    };
+    const floorAspects = { "1F":768.56/456.92, "2F":591.42/475.36, "3F":551.07/414.45, "4F":517.58/428.25 };
+
+    const escapeHTML = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+    })[character]);
+    const colorValue = value => /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#ff5a1f";
+    const positionValue = value => Math.min(96, Math.max(4, Number(value) || 50));
+    const sizeValue = value => Math.min(72, Math.max(24, Number(value) || 36));
+
+    const viewport = document.querySelector("#map-viewport");
+    const transform = document.querySelector("#map-transform");
+    const floorMap = document.querySelector("#floor-map");
+    const pinLayer = document.querySelector("#pin-layer");
+    const boothList = document.querySelector("#booth-list");
+    const searchInput = document.querySelector("#map-search");
+    const floorButtons = [...document.querySelectorAll(".floor-tabs button")];
+    const activePointers = new Map();
+
+    let activeFloor = "1F";
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    let previousPinchDistance = 0;
+
+    function fitMapSpace() {
+      const rect = viewport.getBoundingClientRect();
+      const mobile = window.innerWidth <= 800;
+      const padding = mobile ? { top:58, right:10, bottom:42, left:10 } : { top:18, right:32, bottom:22, left:82 };
+      const availableWidth = Math.max(1, rect.width - padding.left - padding.right);
+      const availableHeight = Math.max(1, rect.height - padding.top - padding.bottom);
+      const aspect = floorAspects[activeFloor] || 1;
+      let width = availableWidth;
+      let height = width / aspect;
+      if (height > availableHeight) { height = availableHeight; width = height * aspect; }
+      transform.style.left = `${padding.left + (availableWidth - width) / 2}px`;
+      transform.style.top = `${padding.top + (availableHeight - height) / 2}px`;
+      transform.style.right = "auto";
+      transform.style.bottom = "auto";
+      transform.style.width = `${width}px`;
+      transform.style.height = `${height}px`;
+    }
+
+    function boothsOnFloor() {
+      const query = searchInput.value.trim().toLowerCase();
+      return booths.filter(booth => booth.floor === activeFloor && booth.mapVisible !== false && booth.mapVisible !== "false" && [
+        booth.title,
+        booth.place,
+        booth.description,
+        booth.keywords
+      ].join(" ").toLowerCase().includes(query));
+    }
+
+    function renderPins() {
+      const visibleBooths = boothsOnFloor();
+      document.querySelector("#sidebar-count").textContent = visibleBooths.length;
+      document.querySelector("#list-empty").hidden = visibleBooths.length > 0;
+
+      pinLayer.innerHTML = visibleBooths.map((booth, index) => `
+        <a
+          class="map-pin"
+          href="booth.html?id=${encodeURIComponent(booth.id)}"
+          style="--pin-x:${positionValue(booth.mapX)}%;--pin-y:${positionValue(booth.mapY)}%;--pin-size:${sizeValue(booth.mapSize)}px;--pin-color:${colorValue(booth.color)};--pin-delay:${index * 45}ms"
+          aria-label="${escapeHTML(booth.title)}の紹介を見る"
+          data-booth-id="${escapeHTML(booth.id)}"
+        >
+          <i><span>${index + 1}</span></i>
+          <em><b>${escapeHTML(booth.title)}</b><small>${escapeHTML(booth.floor)} · ${escapeHTML(booth.place)}</small></em>
+        </a>
+      `).join("");
+
+      boothList.innerHTML = visibleBooths.map((booth, index) => `
+        <a href="booth.html?id=${encodeURIComponent(booth.id)}" data-booth-id="${escapeHTML(booth.id)}">
+          <span style="background:${colorValue(booth.color)}">${String(index + 1).padStart(2, "0")}</span>
+          <div><b>${escapeHTML(booth.title)}</b><small>${escapeHTML(booth.place)}</small></div>
+          <i>→</i>
+        </a>
+      `).join("");
+    }
+
+    function openBoothSheet(booth) {
+      const sheet = document.querySelector("#map-booth-sheet");
+      const boothIndex = booths.findIndex(item => item.id === booth.id);
+      document.querySelector("#sheet-marker").textContent = String(boothIndex + 1).padStart(2, "0");
+      document.querySelector("#sheet-marker").style.background = colorValue(booth.color);
+      document.querySelector("#sheet-floor").textContent = booth.floor;
+      document.querySelector("#sheet-place").textContent = booth.place;
+      document.querySelector("#sheet-title").textContent = booth.title;
+      document.querySelector("#sheet-description").textContent = booth.description;
+      document.querySelector("#sheet-detail").href = `booth.html?id=${encodeURIComponent(booth.id)}`;
+      sheet.classList.add("open");
+      sheet.setAttribute("aria-hidden", "false");
+      document.querySelectorAll(".map-pin").forEach(pin => pin.classList.toggle("selected", pin.dataset.boothId === booth.id));
+    }
+
+    function closeBoothSheet() {
+      const sheet = document.querySelector("#map-booth-sheet");
+      sheet.classList.remove("open");
+      sheet.setAttribute("aria-hidden", "true");
+      document.querySelectorAll(".map-pin").forEach(pin => pin.classList.remove("selected"));
+    }
+
+    document.addEventListener("click", event => {
+      const target = event.target.closest(".map-pin, .booth-list a");
+      if (!target) return;
+      const booth = booths.find(item => item.id === target.dataset.boothId);
+      if (!booth) return;
+      event.preventDefault();
+      openBoothSheet(booth);
+    });
+    document.querySelector("#sheet-close").addEventListener("click", closeBoothSheet);
+
+    function applyTransform() {
+      transform.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      document.querySelector("#zoom-reset").textContent = `${Math.round(scale * 100)}%`;
+    }
+
+    function resetMap() {
+      scale = 1;
+      translateX = 0;
+      translateY = 0;
+      applyTransform();
+    }
+
+    function zoomAt(nextScale, clientX, clientY) {
+      const limitedScale = Math.min(4, Math.max(1, nextScale));
+      const rect = viewport.getBoundingClientRect();
+      const pointX = clientX - rect.left;
+      const pointY = clientY - rect.top;
+      const ratio = limitedScale / scale;
+      translateX = pointX - (pointX - translateX) * ratio;
+      translateY = pointY - (pointY - translateY) * ratio;
+      scale = limitedScale;
+      if (scale === 1) translateX = translateY = 0;
+      applyTransform();
+    }
+
+    async function loadFloorMap(floor) {
+      floorMap.classList.add("loading");
+      floorMap.setAttribute("aria-label", `校内マップ ${floor.replace("F", "階")}`);
+      try {
+        const response = await fetch(floorFiles[floor], { cache: "no-store" });
+        if (!response.ok) throw new Error("Map load failed");
+        const source = await response.text();
+        const documentSVG = new DOMParser().parseFromString(source, "image/svg+xml");
+        const svg = documentSVG.documentElement;
+        if (svg.tagName.toLowerCase() !== "svg") throw new Error("Invalid SVG");
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        const viewBox = svg.getAttribute("viewBox")?.trim().split(/[ ,]+/).map(Number);
+        if (viewBox?.length === 4 && viewBox[2] > 0 && viewBox[3] > 0) floorAspects[floor] = viewBox[2] / viewBox[3];
+        floorMap.replaceChildren(document.importNode(svg, true));
+      } catch (error) {
+        floorMap.innerHTML = `<object type="image/svg+xml" data="${floorFiles[floor]}" aria-label="校内マップ ${floor.replace("F", "階")}"></object>`;
+      } finally {
+        floorMap.classList.remove("loading");
+        fitMapSpace();
+      }
+    }
+
+    function selectFloor(floor) {
+      activeFloor = floorFiles[floor] ? floor : "1F";
+      closeBoothSheet();
+      floorButtons.forEach(button => button.classList.toggle("active", button.dataset.floor === activeFloor));
+      document.querySelector("#floor-name").innerHTML = `${activeFloor} <span>/ ${floorLabels[activeFloor]}</span>`;
+      fitMapSpace();
+      loadFloorMap(activeFloor);
+      resetMap();
+      renderPins();
+    }
+
+    floorButtons.forEach(button => button.addEventListener("click", () => selectFloor(button.dataset.floor)));
+    searchInput.addEventListener("input", renderPins);
+    window.addEventListener("resize", () => { resetMap(); fitMapSpace(); });
+
+    viewport.addEventListener("wheel", event => {
+      event.preventDefault();
+      zoomAt(scale * (event.deltaY < 0 ? 1.15 : 0.87), event.clientX, event.clientY);
+    }, { passive: false });
+
+    viewport.addEventListener("pointerdown", event => {
+      if (event.target.closest(".map-pin")) return;
+      viewport.setPointerCapture(event.pointerId);
+      activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      viewport.classList.add("dragging");
+    });
+
+    viewport.addEventListener("pointermove", event => {
+      if (!activePointers.has(event.pointerId)) return;
+      const previous = activePointers.get(event.pointerId);
+      activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const points = [...activePointers.values()];
+
+      if (points.length === 1 && scale > 1) {
+        translateX += event.clientX - previous.x;
+        translateY += event.clientY - previous.y;
+        applyTransform();
+      } else if (points.length === 2) {
+        const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+        const centerX = (points[0].x + points[1].x) / 2;
+        const centerY = (points[0].y + points[1].y) / 2;
+        if (previousPinchDistance) zoomAt(scale * distance / previousPinchDistance, centerX, centerY);
+        previousPinchDistance = distance;
+      }
+    });
+
+    function releasePointer(event) {
+      activePointers.delete(event.pointerId);
+      if (activePointers.size < 2) previousPinchDistance = 0;
+      if (!activePointers.size) viewport.classList.remove("dragging");
+    }
+
+    viewport.addEventListener("pointerup", releasePointer);
+    viewport.addEventListener("pointercancel", releasePointer);
+
+    document.querySelector("#zoom-in").addEventListener("click", () => {
+      const rect = viewport.getBoundingClientRect();
+      zoomAt(scale * 1.25, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    });
+    document.querySelector("#zoom-out").addEventListener("click", () => {
+      const rect = viewport.getBoundingClientRect();
+      zoomAt(scale / 1.25, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    });
+    document.querySelector("#zoom-reset").addEventListener("click", resetMap);
+
+    const requestedBooth = new URLSearchParams(location.search).get("booth");
+    const requestedItem = booths.find(booth => booth.id === requestedBooth);
+    selectFloor(requestedItem?.floor || "1F");
+
+    if (requestedItem) requestAnimationFrame(() => openBoothSheet(requestedItem));
+  </script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEIKO FESTA 管理画面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <style>input[type="color"]{height:52px;padding:4px!important;cursor:pointer}input[type="color"]::-webkit-color-swatch-wrapper{padding:0}input[type="color"]::-webkit-color-swatch{border:0;border-radius:4px}.record-row{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;border-bottom:1px solid var(--line);transition:.15s}.record-row.drag-over{background:#ff5a1f14;box-shadow:inset 0 2px var(--orange)}.record-row .record{border-bottom:0}.drag-handle{border:0;background:transparent;color:var(--ink);opacity:.35;cursor:grab;font-weight:700}.drag-handle:active{cursor:grabbing}.order-buttons{display:grid;align-content:center;gap:2px}.order-buttons button{width:30px;height:26px;border:0;background:transparent;color:var(--ink);cursor:pointer}.order-buttons button:hover{background:#fff}.order-help{margin:-18px 0 22px;font-size:10px;opacity:.5}@media(max-width:600px){.record-row{grid-template-columns:24px minmax(0,1fr) 32px}.drag-handle{padding:0}}</style>
+  <script src="site-data.js"></script>
+</head>
+<body>
+  <header class="admin-header">
+    <div class="admin-brand"><span>68</span><div><b>SEIKO FESTA</b><small>CONTENT MANAGER</small></div></div>
+    <div class="header-actions"><a href="admin-map.html">マップ編集</a><a href="index.html" target="_blank">サイトを確認 ↗</a><button id="publish-button" type="button">サイトへ反映</button></div>
+  </header>
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <p>編集する内容</p>
+      <nav>
+        <button type="button" class="active" data-section="news"><span>01</span>ニュース</button>
+        <button type="button" data-section="booths"><span>02</span>展示・企画</button>
+        <button type="button" data-section="schedule"><span>03</span>予定表</button>
+      </nav>
+      <div class="save-guide"><b>使い方</b><p>内容を編集したあと「サイトへ反映」を押し、保存先の <code>site-data.js</code> を上書きしてください。</p></div>
+    </aside>
+
+    <main class="admin-main">
+      <section class="records-panel">
+        <div class="panel-heading"><div><p id="section-kicker">LATEST UPDATE</p><h1 id="section-title">ニュース</h1></div><button id="new-button" type="button">＋ 新規追加</button></div>
+        <p class="order-help">ドラッグ、または右側の ↑ ↓ で順番を変更できます。</p><div class="record-list" id="record-list"></div>
+      </section>
+
+      <section class="editor-panel">
+        <div class="editor-heading"><p id="editor-mode">新規追加</p><h2 id="editor-title">ニュースを追加</h2></div>
+        <form id="editor-form" class="editor-form"></form>
+        <div class="editor-actions"><button type="submit" form="editor-form" class="save-record">内容を保存</button><button type="button" id="delete-button" class="delete-record" hidden>削除</button></div>
+        <p class="status" id="status" aria-live="polite"></p>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="publish-dialog">
+    <div class="dialog-icon">✓</div><h2>更新データを保存しました</h2><p>ダウンロードされた <b>site-data.js</b> を、サイトの同名ファイルと置き換えると反映完了です。</p><div><button id="close-dialog" type="button">閉じる</button><a href="index.html" target="_blank">サイトを確認</a></div>
+  </dialog>
+
+  <script>
+    const clone = value => JSON.parse(JSON.stringify(value));
+    const data = clone(window.SITE_DATA);
+    let currentSection = 'news';
+    let selectedId = null;
+
+    const sectionInfo = {
+      news: { title: 'ニュース', kicker: 'LATEST UPDATE', editor: 'ニュース', empty: 'ニュースはまだありません。' },
+      booths: { title: '展示・企画', kicker: 'BOOTH GUIDE', editor: '展示企画', empty: '展示企画はまだありません。' },
+      schedule: { title: '予定表', kicker: 'SCHEDULE', editor: '予定', empty: '予定はまだありません。' }
+    };
+
+    const recordList = document.querySelector('#record-list');
+    const form = document.querySelector('#editor-form');
+    const status = document.querySelector('#status');
+    const deleteButton = document.querySelector('#delete-button');
+
+    function escapeHTML(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[character]));
+    }
+
+    function scheduleRecords() {
+      return ['day1', 'day2'].flatMap(day => data.schedule[day].map((item, index) => ({ id: `${day}-${index}`, day, index, time:item[0], title:item[1], place:item[2], category:item[3] })));
+    }
+
+    function records() {
+      return currentSection === 'schedule' ? scheduleRecords() : data[currentSection];
+    }
+
+    function moveRecord(id, direction) {
+      if (currentSection === 'schedule') {
+        const item = scheduleRecords().find(record => record.id === id);
+        const list = data.schedule[item.day];
+        const target = item.index + direction;
+        if (target < 0 || target >= list.length) return;
+        [list[item.index], list[target]] = [list[target], list[item.index]];
+      } else {
+        const list = data[currentSection];
+        const index = list.findIndex(item => item.id === id);
+        const target = index + direction;
+        if (target < 0 || target >= list.length) return;
+        [list[index], list[target]] = [list[target], list[index]];
+      }
+      selectedId = null; renderList(); renderForm(); status.textContent = '順番を変更しました。最後に「サイトへ反映」を押してください。';
+    }
+
+    function reorderRecord(sourceId, targetId) {
+      if (!sourceId || sourceId === targetId) return;
+      if (currentSection === 'schedule') {
+        const source = scheduleRecords().find(item => item.id === sourceId);
+        const target = scheduleRecords().find(item => item.id === targetId);
+        if (!source || !target || source.day !== target.day) { status.textContent = '予定表は同じ開催日の中で並び替えてください。'; return; }
+        const list = data.schedule[source.day];
+        const [moved] = list.splice(source.index, 1);
+        list.splice(target.index, 0, moved);
+      } else {
+        const list = data[currentSection];
+        const sourceIndex = list.findIndex(item => item.id === sourceId);
+        const targetIndex = list.findIndex(item => item.id === targetId);
+        const [moved] = list.splice(sourceIndex, 1);
+        list.splice(targetIndex, 0, moved);
+      }
+      selectedId = null; renderList(); renderForm(); status.textContent = '順番を変更しました。最後に「サイトへ反映」を押してください。';
+    }
+
+    function renderList() {
+      const items = records();
+      recordList.innerHTML = items.length ? items.map(item => {
+        const title = item.title;
+        const meta = currentSection === 'news' ? `${item.date} ・ ${item.tag}` : currentSection === 'booths' ? `${item.floor} ・ ${item.place}` : `${item.day === 'day1' ? 'DAY 1' : 'DAY 2'} ・ ${item.time} ・ ${item.place}`;
+        return `<div class="record-row" draggable="true" data-id="${escapeHTML(item.id)}"><button type="button" class="drag-handle" aria-label="ドラッグして並び替え">⋮⋮</button><button type="button" class="record ${selectedId === item.id ? 'selected' : ''}" data-id="${escapeHTML(item.id)}"><span>${escapeHTML(meta)}</span><b>${escapeHTML(title)}</b><i>→</i></button><div class="order-buttons"><button type="button" data-move="-1" aria-label="上へ移動">↑</button><button type="button" data-move="1" aria-label="下へ移動">↓</button></div></div>`;
+      }).join('') : `<p class="empty-list">${sectionInfo[currentSection].empty}</p>`;
+      recordList.querySelectorAll('.record').forEach(button => button.addEventListener('click', () => selectRecord(button.dataset.id)));
+      recordList.querySelectorAll('[data-move]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); moveRecord(button.closest('.record-row').dataset.id, Number(button.dataset.move)); }));
+      let draggedId = null;
+      recordList.querySelectorAll('.record-row').forEach(row => {
+        row.addEventListener('dragstart', event => { draggedId = row.dataset.id; event.dataTransfer.effectAllowed = 'move'; });
+        row.addEventListener('dragover', event => { event.preventDefault(); row.classList.add('drag-over'); });
+        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+        row.addEventListener('drop', event => { event.preventDefault(); row.classList.remove('drag-over'); reorderRecord(draggedId, row.dataset.id); });
+        row.addEventListener('dragend', () => recordList.querySelectorAll('.record-row').forEach(item => item.classList.remove('drag-over')));
+      });
+    }
+
+    function field(label, name, type = 'text', value = '', options = []) {
+      if (type === 'select') return `<label><span>${label}</span><select name="${name}">${options.map(option => { const optionValue = Array.isArray(option) ? option[0] : option; const optionLabel = Array.isArray(option) ? option[1] : option; return `<option value="${escapeHTML(optionValue)}" ${String(optionValue) === String(value) ? 'selected' : ''}>${escapeHTML(optionLabel)}</option>`; }).join('')}</select></label>`;
+      if (type === 'textarea') return `<label class="wide"><span>${label}</span><textarea name="${name}" rows="5">${escapeHTML(value)}</textarea></label>`;
+      return `<label><span>${label}</span><input name="${name}" type="${type}" value="${escapeHTML(value)}" required></label>`;
+    }
+
+    function renderForm(item = {}) {
+      document.querySelector('#editor-mode').textContent = selectedId ? '編集中' : '新規追加';
+      document.querySelector('#editor-title').textContent = `${sectionInfo[currentSection].editor}を${selectedId ? '編集' : '追加'}`;
+      deleteButton.hidden = !selectedId;
+      if (currentSection === 'news') form.innerHTML = field('日付','date','date',item.date || new Date().toISOString().slice(0,10)) + field('種類','tag','select',item.tag || 'INFO',['INFO','BOOTH','IMPORTANT']) + field('見出し','title','textarea',item.title || '');
+      if (currentSection === 'booths') form.innerHTML = field('企画名','title','text',item.title || '') + field('階','floor','select',item.floor || '1F',['1F','2F','3F','4F']) + field('場所','place','text',item.place || '') + field('一覧用の短い紹介文','description','textarea',item.description || '') + field('専用ページの詳しい紹介文','detail','textarea',item.detail || item.description || '') + field('検索キーワード','keywords','text',item.keywords || '') + field('英語キャッチコピー','catchcopy','text',item.catchcopy || '') + field('カードカラー','color','color',item.color || '#ff5a1f') + field('マップにピンを表示','mapVisible','select',String(item.mapVisible ?? true),[['true','表示する'],['false','表示しない']]) + field('ピンの横位置（0〜100）','mapX','number',item.mapX ?? 50) + field('ピンの縦位置（0〜100）','mapY','number',item.mapY ?? 50) + field('ピンの大きさ（24〜72）','mapSize','number',item.mapSize ?? 36);
+      if (currentSection === 'schedule') form.innerHTML = field('開催日','day','select',item.day || 'day1',['day1','day2']) + field('開始時刻','time','time',item.time || '09:00') + field('イベント名','title','text',item.title || '') + field('会場','place','text',item.place || '') + field('種類','category','select',item.category || 'EVENT',['STAGE','MUSIC','EVENT','PLAY']);
+    }
+
+    function selectRecord(id) {
+      selectedId = id;
+      const item = records().find(record => record.id === id);
+      renderList(); renderForm(item); status.textContent = '';
+    }
+
+    function resetEditor() {
+      selectedId = null; renderList(); renderForm(); status.textContent = '';
+    }
+
+    document.querySelectorAll('[data-section]').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('[data-section]').forEach(item => item.classList.remove('active'));
+      button.classList.add('active'); currentSection = button.dataset.section; selectedId = null;
+      document.querySelector('#section-title').textContent = sectionInfo[currentSection].title;
+      document.querySelector('#section-kicker').textContent = sectionInfo[currentSection].kicker;
+      renderList(); renderForm();
+    }));
+
+    document.querySelector('#new-button').addEventListener('click', resetEditor);
+
+    form.addEventListener('submit', event => {
+      event.preventDefault(); const values = Object.fromEntries(new FormData(form));
+      if (currentSection === 'schedule') {
+        if (selectedId) { const old = scheduleRecords().find(item => item.id === selectedId); data.schedule[old.day].splice(old.index, 1); }
+        data.schedule[values.day].push([values.time, values.title, values.place, values.category]);
+        data.schedule[values.day].sort((a,b) => a[0].localeCompare(b[0]));
+      } else if (selectedId) {
+        const index = data[currentSection].findIndex(item => item.id === selectedId); data[currentSection][index] = { ...data[currentSection][index], ...values };
+      } else {
+        data[currentSection].push({ id: `${currentSection}-${Date.now()}`, ...values });
+      }
+      resetEditor(); status.textContent = '内容を保存しました。最後に右上の「サイトへ反映」を押してください。';
+    });
+
+    deleteButton.addEventListener('click', () => {
+      if (!selectedId || !confirm('この内容を削除しますか？')) return;
+      if (currentSection === 'schedule') { const item = scheduleRecords().find(record => record.id === selectedId); data.schedule[item.day].splice(item.index, 1); }
+      else data[currentSection] = data[currentSection].filter(item => item.id !== selectedId);
+      resetEditor(); status.textContent = '削除しました。';
+    });
+
+    function makeDataFile() { return `window.SITE_DATA = ${JSON.stringify(data, null, 2)};\n`; }
+
+    document.querySelector('#publish-button').addEventListener('click', async () => {
+      const content = makeDataFile();
+      try {
+        if ('showSaveFilePicker' in window) {
+          const handle = await window.showSaveFilePicker({ suggestedName:'site-data.js', types:[{ description:'JavaScript data file', accept:{'text/javascript':['.js']} }] });
+          const writable = await handle.createWritable(); await writable.write(content); await writable.close();
+        } else {
+          const url = URL.createObjectURL(new Blob([content], { type:'text/javascript;charset=utf-8' }));
+          const link = document.createElement('a'); link.href = url; link.download = 'site-data.js'; link.click(); URL.revokeObjectURL(url);
+        }
+        document.querySelector('#publish-dialog').showModal();
+      } catch (error) { if (error.name !== 'AbortError') status.textContent = '保存できませんでした。もう一度お試しください。'; }
+    });
+
+    document.querySelector('#close-dialog').addEventListener('click', () => document.querySelector('#publish-dialog').close());
+    renderList(); renderForm();
+  </script>
+</body>
+</html>

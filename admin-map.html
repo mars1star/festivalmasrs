@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>マップ編集 | SEIKO FESTA 管理画面</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin-map.css">
+  <style>[hidden]{display:none!important}.editor-svg{inset:0}</style>
+  <script src="site-data.js"></script>
+</head>
+<body>
+  <header class="editor-header">
+    <a class="editor-brand" href="admin.html"><span>68</span><div><b>MAP EDITOR</b><small>CONTENT MANAGER</small></div></a>
+    <div class="editor-header-actions"><a href="map.html" target="_blank">マップを確認 ↗</a><button id="export-button" type="button">サイトへ反映</button></div>
+  </header>
+
+  <main class="map-editor-app">
+    <aside class="editor-sidebar">
+      <div class="editor-intro"><p>PIN POSITION</p><h1>ピンを配置</h1><small>展示を選び、マップ上のピンをドラッグしてください。</small></div>
+      <div class="editor-floors" id="editor-floors"><button class="active" data-floor="1F">1F</button><button data-floor="2F">2F</button><button data-floor="3F">3F</button><button data-floor="4F">4F</button></div>
+      <div class="editor-booth-list" id="editor-booth-list"></div>
+    </aside>
+
+    <section class="editor-workspace">
+      <div class="workspace-top"><b id="workspace-floor">1F / GROUND FLOOR</b><span>ピンをドラッグして位置を変更</span></div>
+      <div class="editor-canvas" id="editor-canvas">
+        <div class="editor-svg" id="editor-svg"></div>
+        <div class="editor-pins" id="editor-pins"></div>
+      </div>
+      <div class="editor-help"><i></i> 選択中のピンはオレンジ色の輪で表示されます</div>
+    </section>
+
+    <aside class="pin-panel" id="pin-panel">
+      <div class="pin-panel-empty" id="pin-panel-empty"><span>＋</span><p>左の一覧から展示を選択してください。</p></div>
+      <div class="pin-panel-content" id="pin-panel-content" hidden>
+        <p class="panel-kicker">SELECTED BOOTH</p><h2 id="selected-title"></h2><small id="selected-place"></small>
+        <label class="toggle-row"><span>マップに表示</span><input id="pin-visible" type="checkbox"></label>
+        <div class="coordinate-grid"><label><span>横位置 X</span><input id="pin-x" type="number" min="0" max="100" step="0.1"></label><label><span>縦位置 Y</span><input id="pin-y" type="number" min="0" max="100" step="0.1"></label></div>
+        <label><span>ピンの大きさ</span><div class="size-control"><input id="pin-size-range" type="range" min="24" max="72" step="1"><input id="pin-size" type="number" min="24" max="72" step="1"></div></label>
+        <button class="center-button" id="center-button" type="button">ピンをマップ中央に置く</button>
+        <p class="panel-note">変更後、右上の「サイトへ反映」を押してください。</p>
+      </div>
+    </aside>
+  </main>
+
+  <dialog id="saved-dialog"><div>✓</div><h2>マップ設定を保存しました</h2><p>保存した <b>site-data.js</b> をサイトの同名ファイルと置き換えてください。</p><button id="dialog-close" type="button">閉じる</button></dialog>
+
+  <script>
+    const data = JSON.parse(JSON.stringify(window.SITE_DATA || { booths: [] }));
+    const floorFiles = { "1F":"map1.8cgplEnB.svg", "2F":"map2.Cs3qd4O4.svg", "3F":"map3.BRoANSkX.svg", "4F":"map4.Dc8Ov8CJ.svg" };
+    const floorLabels = { "1F":"GROUND FLOOR", "2F":"SECOND FLOOR", "3F":"THIRD FLOOR", "4F":"FOURTH FLOOR" };
+    const floorAspects = { "1F":768.56/456.92, "2F":591.42/475.36, "3F":551.07/414.45, "4F":517.58/428.25 };
+    const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, Number(value)));
+    const escapeHTML = value => String(value ?? "").replace(/[&<>'"]/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[character]);
+    const colorValue = value => /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#ff5a1f";
+    let activeFloor = "1F";
+    let selectedId = null;
+    let draggedId = null;
+
+    const canvas = document.querySelector("#editor-canvas");
+    const pins = document.querySelector("#editor-pins");
+    const boothList = document.querySelector("#editor-booth-list");
+    const pinX = document.querySelector("#pin-x");
+    const pinY = document.querySelector("#pin-y");
+    const pinSize = document.querySelector("#pin-size");
+    const pinSizeRange = document.querySelector("#pin-size-range");
+    const pinVisible = document.querySelector("#pin-visible");
+
+    function currentBooth() { return data.booths.find(booth => booth.id === selectedId); }
+    function floorBooths() { return data.booths.filter(booth => booth.floor === activeFloor); }
+
+    function fitEditorMap() {
+      const rect = canvas.getBoundingClientRect();
+      const padding = 12;
+      const availableWidth = Math.max(1, rect.width - padding * 2);
+      const availableHeight = Math.max(1, rect.height - padding * 2);
+      const aspect = floorAspects[activeFloor] || 1;
+      let width = availableWidth;
+      let height = width / aspect;
+      if (height > availableHeight) { height = availableHeight; width = height * aspect; }
+      const left = padding + (availableWidth - width) / 2;
+      const top = padding + (availableHeight - height) / 2;
+      [document.querySelector("#editor-svg"), pins].forEach(layer => {
+        layer.style.left = `${left}px`; layer.style.top = `${top}px`;
+        layer.style.right = "auto"; layer.style.bottom = "auto";
+        layer.style.width = `${width}px`; layer.style.height = `${height}px`;
+      });
+    }
+
+    async function loadSVG() {
+      const holder = document.querySelector("#editor-svg");
+      holder.classList.add("loading");
+      try {
+        const response = await fetch(floorFiles[activeFloor], { cache: "no-store" });
+        if (!response.ok) throw new Error("load error");
+        const source = await response.text();
+        const svg = new DOMParser().parseFromString(source, "image/svg+xml").documentElement;
+        const viewBox = svg.getAttribute("viewBox")?.trim().split(/[ ,]+/).map(Number);
+        if (viewBox?.length === 4 && viewBox[2] > 0 && viewBox[3] > 0) floorAspects[activeFloor] = viewBox[2] / viewBox[3];
+        svg.removeAttribute("width"); svg.removeAttribute("height"); svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        holder.replaceChildren(document.importNode(svg, true));
+      } catch (error) {
+        holder.innerHTML = `<object type="image/svg+xml" data="${floorFiles[activeFloor]}"></object>`;
+      } finally { holder.classList.remove("loading"); fitEditorMap(); }
+    }
+
+    function renderList() {
+      const list = floorBooths();
+      boothList.innerHTML = list.length ? list.map((booth, index) => `<button type="button" data-id="${escapeHTML(booth.id)}" class="${booth.id === selectedId ? 'active' : ''}"><i style="background:${colorValue(booth.color)}">${String(index + 1).padStart(2,'0')}</i><span><b>${escapeHTML(booth.title)}</b><small>${escapeHTML(booth.place)}</small></span><em>${booth.mapVisible === false || booth.mapVisible === 'false' ? '非表示' : '表示'}</em></button>`).join("") : '<p class="no-booths">この階に展示はありません。</p>';
+      boothList.querySelectorAll("button").forEach(button => button.addEventListener("click", () => selectBooth(button.dataset.id)));
+    }
+
+    function renderPins() {
+      pins.innerHTML = floorBooths().filter(booth => booth.mapVisible !== false && booth.mapVisible !== "false").map(booth => `<button type="button" class="editor-pin ${booth.id === selectedId ? 'selected' : ''}" data-id="${escapeHTML(booth.id)}" style="--x:${clamp(booth.mapX ?? 50,0,100)}%;--y:${clamp(booth.mapY ?? 50,0,100)}%;--size:${clamp(booth.mapSize ?? 36,24,72)}px;--color:${colorValue(booth.color)}" aria-label="${escapeHTML(booth.title)}のピンを移動"><i></i><span>${escapeHTML(booth.title)}</span></button>`).join("");
+      pins.querySelectorAll(".editor-pin").forEach(pin => {
+        pin.addEventListener("click", () => selectBooth(pin.dataset.id));
+        pin.addEventListener("pointerdown", event => { event.preventDefault(); draggedId = pin.dataset.id; selectBooth(draggedId, false); pin.setPointerCapture(event.pointerId); pin.classList.add("dragging"); });
+        pin.addEventListener("pointermove", event => { if (draggedId !== pin.dataset.id) return; movePin(event.clientX, event.clientY); });
+        const stop = () => { draggedId = null; pin.classList.remove("dragging"); };
+        pin.addEventListener("pointerup", stop); pin.addEventListener("pointercancel", stop);
+      });
+    }
+
+    function movePin(clientX, clientY) {
+      const booth = currentBooth(); if (!booth) return;
+      const rect = pins.getBoundingClientRect();
+      booth.mapX = Math.round(clamp((clientX - rect.left) / rect.width * 100, 0, 100) * 10) / 10;
+      booth.mapY = Math.round(clamp((clientY - rect.top) / rect.height * 100, 0, 100) * 10) / 10;
+      pinX.value = booth.mapX; pinY.value = booth.mapY;
+      const pin = pins.querySelector(`[data-id="${CSS.escape(booth.id)}"]`);
+      if (pin) { pin.style.setProperty("--x", `${booth.mapX}%`); pin.style.setProperty("--y", `${booth.mapY}%`); }
+    }
+
+    function selectBooth(id, rerender = true) {
+      selectedId = id;
+      const booth = currentBooth(); if (!booth) return;
+      document.querySelector("#pin-panel-empty").hidden = true;
+      document.querySelector("#pin-panel-content").hidden = false;
+      document.querySelector("#selected-title").textContent = booth.title;
+      document.querySelector("#selected-place").textContent = `${booth.floor} · ${booth.place}`;
+      pinX.value = booth.mapX ?? 50; pinY.value = booth.mapY ?? 50; pinSize.value = booth.mapSize ?? 36; pinSizeRange.value = booth.mapSize ?? 36;
+      pinVisible.checked = booth.mapVisible !== false && booth.mapVisible !== "false";
+      renderList();
+      if (rerender) renderPins();
+      else pins.querySelectorAll(".editor-pin").forEach(pin => pin.classList.toggle("selected", pin.dataset.id === id));
+    }
+
+    function updateSelected() {
+      const booth = currentBooth(); if (!booth) return;
+      booth.mapX = clamp(pinX.value,0,100); booth.mapY = clamp(pinY.value,0,100); booth.mapSize = clamp(pinSize.value,24,72); booth.mapVisible = pinVisible.checked;
+      pinSizeRange.value = booth.mapSize; renderList(); renderPins();
+    }
+
+    [pinX,pinY,pinSize,pinVisible].forEach(input => input.addEventListener("input", updateSelected));
+    pinSizeRange.addEventListener("input", () => { pinSize.value = pinSizeRange.value; updateSelected(); });
+    document.querySelector("#center-button").addEventListener("click", () => { pinX.value=50; pinY.value=50; pinVisible.checked=true; updateSelected(); });
+
+    function selectFloor(floor) {
+      activeFloor = floor;
+      document.querySelectorAll("#editor-floors button").forEach(button => button.classList.toggle("active", button.dataset.floor === floor));
+      document.querySelector("#workspace-floor").textContent = `${floor} / ${floorLabels[floor]}`;
+      const first = floorBooths()[0]; selectedId = first?.id || null;
+      fitEditorMap(); loadSVG(); renderList(); renderPins();
+      if (first) selectBooth(first.id); else { document.querySelector("#pin-panel-empty").hidden=false; document.querySelector("#pin-panel-content").hidden=true; }
+    }
+    document.querySelectorAll("#editor-floors button").forEach(button => button.addEventListener("click", () => selectFloor(button.dataset.floor)));
+    window.addEventListener("resize", fitEditorMap);
+
+    function makeDataFile() { return `window.SITE_DATA = ${JSON.stringify(data, null, 2)};\n`; }
+    document.querySelector("#export-button").addEventListener("click", async () => {
+      const content = makeDataFile();
+      try {
+        if ("showSaveFilePicker" in window) {
+          const handle = await window.showSaveFilePicker({ suggestedName:"site-data.js", types:[{description:"JavaScript data file",accept:{"text/javascript":[".js"]}}] });
+          const writable = await handle.createWritable(); await writable.write(content); await writable.close();
+        } else {
+          const url = URL.createObjectURL(new Blob([content],{type:"text/javascript;charset=utf-8"}));
+          const link = document.createElement("a"); link.href=url; link.download="site-data.js"; link.click(); URL.revokeObjectURL(url);
+        }
+        document.querySelector("#saved-dialog").showModal();
+      } catch (error) { if (error.name !== "AbortError") alert("保存できませんでした。もう一度お試しください。"); }
+    });
+    document.querySelector("#dialog-close").addEventListener("click", () => document.querySelector("#saved-dialog").close());
+    selectFloor("1F");
+  </script>
+</body>
+</html>

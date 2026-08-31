@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="第68回聖光祭の展示企画紹介。">
+  <title>BOOTH | 68th SEIKO FESTA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="booth.css">
+  <script src="site-data.js"></script>
+</head>
+<body>
+  <header class="detail-header">
+    <a href="index.html#booths"><span>←</span> BOOTH GUIDE</a>
+    <a class="detail-brand" href="index.html"><b>68</b><span>SEIKO FESTA<small>OPEN THE NEXT.</small></span></a>
+    <a id="header-map-link" href="map.html">MAP <span>↗</span></a>
+  </header>
+
+  <main id="booth-detail">
+    <section class="detail-hero">
+      <div class="detail-number" id="detail-number">00</div>
+      <div class="detail-copy">
+        <p class="kicker">EXHIBITION / <span id="detail-floor">--</span></p>
+        <h1 id="detail-title">展示情報を読み込んでいます</h1>
+        <p class="catchcopy" id="detail-catchcopy">PLEASE WAIT.</p>
+      </div>
+      <div class="detail-art" aria-hidden="true"><i></i><i></i><i></i></div>
+    </section>
+
+    <section class="detail-content">
+      <div class="detail-label"><p>ABOUT THIS BOOTH</p><span id="detail-index">01 / 01</span></div>
+      <div class="detail-description">
+        <p id="detail-description"></p>
+        <dl><div><dt>FLOOR</dt><dd id="detail-floor-info">--</dd></div><div><dt>PLACE</dt><dd id="detail-place">--</dd></div></dl>
+        <a class="map-button" id="detail-map-link" href="map.html">マップで場所を見る <span>→</span></a>
+      </div>
+    </section>
+
+    <nav class="detail-navigation" aria-label="ほかの展示">
+      <a id="previous-booth" href="#"><small>PREVIOUS</small><b>← 前の展示</b></a>
+      <a id="next-booth" href="#"><small>NEXT</small><b>次の展示 →</b></a>
+    </nav>
+  </main>
+
+  <section class="not-found" id="not-found" hidden>
+    <p>404 / BOOTH NOT FOUND</p>
+    <h1>展示が見つかりませんでした。</h1>
+    <a href="index.html#booths">展示一覧へ戻る →</a>
+  </section>
+
+  <script>
+    const booths = Array.isArray(window.SITE_DATA?.booths) ? window.SITE_DATA.booths : [];
+    const id = new URLSearchParams(location.search).get("id");
+    const index = booths.findIndex(booth => booth.id === id);
+    const booth = booths[index];
+    const validColor = value => /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#ff5a1f";
+
+    if (!booth) {
+      document.querySelector("#booth-detail").hidden = true;
+      document.querySelector("#not-found").hidden = false;
+      document.title = "展示が見つかりません | 68th SEIKO FESTA";
+    } else {
+      const color = validColor(booth.color);
+      document.documentElement.style.setProperty("--booth-color", color);
+      document.title = `${booth.title} | 68th SEIKO FESTA`;
+      document.querySelector('meta[name="description"]').content = booth.description;
+      document.querySelector("#detail-number").textContent = String(index + 1).padStart(2, "0");
+      document.querySelector("#detail-index").textContent = `${String(index + 1).padStart(2, "0")} / ${String(booths.length).padStart(2, "0")}`;
+      document.querySelector("#detail-floor").textContent = booth.floor;
+      document.querySelector("#detail-floor-info").textContent = booth.floor;
+      document.querySelector("#detail-title").textContent = booth.title;
+      document.querySelector("#detail-catchcopy").textContent = booth.catchcopy || "DISCOVER MORE.";
+      document.querySelector("#detail-description").textContent = booth.detail || booth.description;
+      document.querySelector("#detail-place").textContent = booth.place;
+
+      const mapURL = `map.html?booth=${encodeURIComponent(booth.id)}`;
+      document.querySelector("#detail-map-link").href = mapURL;
+      document.querySelector("#header-map-link").href = mapURL;
+
+      const previous = booths[(index - 1 + booths.length) % booths.length];
+      const next = booths[(index + 1) % booths.length];
+      document.querySelector("#previous-booth").href = `booth.html?id=${encodeURIComponent(previous.id)}`;
+      document.querySelector("#previous-booth b").textContent = `← ${previous.title}`;
+      document.querySelector("#next-booth").href = `booth.html?id=${encodeURIComponent(next.id)}`;
+      document.querySelector("#next-booth b").textContent = `${next.title} →`;
+    }
+  </script>
+</body>
+</html>
