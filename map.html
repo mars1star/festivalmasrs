@@ -9,12 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="map.css">
+  <link rel="stylesheet" href="map.css?v=pink-wave-1">
   <script src="site-data.js"></script>
 </head>
 <body>
   <header class="map-header">
-    <a class="back-link" href="index.html"><span>←</span> SITE TOP</a>
+    <a class="back-link" id="map-back" href="index.html" aria-label="前に見ていたページに戻る"><span>←</span> BACK</a>
     <div class="map-title"><b><em>萌芽</em><span>CAMPUS MAP</span></b><small>展示場所をタップして紹介を見る</small></div>
     <div class="floor-name" id="floor-name">1F <span>/ GROUND FLOOR</span></div>
   </header>
@@ -72,6 +72,23 @@
   </main>
 
   <script>
+    // Native history restores the previous page, including its scroll position.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
+    const mapBack = document.querySelector('#map-back');
+    try {
+      const previousPage = new URL(document.referrer);
+      if (previousPage.origin === location.origin && previousPage.pathname !== location.pathname) {
+        mapBack.href = previousPage.href;
+      }
+    } catch (_) { /* Direct visits fall back to the site home. */ }
+    mapBack.addEventListener('click', event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (history.length > 1) {
+        event.preventDefault();
+        history.back();
+      }
+    });
+
     const data = window.SITE_DATA || { booths: [] };
     const booths = Array.isArray(data.booths) ? data.booths : [];
     const floorFiles = {

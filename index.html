@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=hoga-write-1">
+  <link rel="stylesheet" href="style.css?v=angular-cover-2">
   <script src="site-data.js"></script>
 </head>
 <body>
@@ -26,7 +26,13 @@
 
   <main>
     <section class="hero" id="home">
-      <div class="hero-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="hero-orbit hoga-sculpture" aria-hidden="true">
+        <div class="sculpture-fins">
+          <i style="--fin:0"></i><i style="--fin:1"></i><i style="--fin:2"></i>
+          <i style="--fin:3"></i><i style="--fin:4"></i><i style="--fin:5"></i><i style="--fin:6"></i>
+        </div>
+        <div class="sculpture-glint"></div>
+      </div>
       <div class="hero-copy reveal">
         <p class="eyebrow"><i></i> 2027.04.25 SUN — 26 MON</p>
         <h1 class="hoga-logo hoga-writing" aria-label="萌芽">
@@ -57,10 +63,12 @@
         <div id="countdown"><span class="countdown-unit"><strong>--</strong><small>DAY</small></span><span class="countdown-unit"><strong>--</strong><small>HOUR</small></span><span class="countdown-unit"><strong>--</strong><small>MINUTES</small></span></div>
         <p class="countdown-ended" id="countdown-ended" hidden>聖光祭は閉幕しました</p>
       </div>
-      <a class="scroll-cue" href="#news">SCROLL <span>↓</span></a>
     </section>
 
     <section class="section news-section" id="news">
+      <svg class="news-boundary" viewBox="0 0 1440 180" preserveAspectRatio="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#f2f8e9" d="M0 105 L430 105 L760 24 L1050 112 L1440 58 V180 H0 Z"/>
+      </svg>
       <header class="section-head reveal"><div><p class="eyebrow">LATEST UPDATE</p><h2>NEWS</h2></div><p>聖光祭の最新情報を<br>お知らせします。</p></header>
       <div class="news-list reveal" id="news-list"></div>
     </section>
@@ -110,6 +118,7 @@
   </footer>
   <button class="back-to-top" id="back-to-top" type="button" aria-label="ページ上部へ戻る"><span>↑</span><small>TOP</small></button>
   <script>
+    if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
     const siteData = window.SITE_DATA;
     const escapeHTML = value => String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
     const validColor = value => /^#[0-9a-f]{6}$/i.test(value || '') ? value : '#ff5a1f';
@@ -160,6 +169,13 @@
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'メニューを開く');
     }));
+    function returnHome(event) {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      history.replaceState(null, '', '#home');
+    }
+    document.querySelectorAll('a[href="#home"]').forEach(link => link.addEventListener('click', returnHome));
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return;
       nav.classList.remove('open');
@@ -250,7 +266,9 @@
 
     const progressBar = document.querySelector('#scroll-progress-bar');
     const backToTop = document.querySelector('#back-to-top');
+    const hero = document.querySelector('.hero');
     const heroOrbit = document.querySelector('.hero-orbit');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let scrollTicking = false;
 
     function updateScrollEffects() {
@@ -259,6 +277,10 @@
       progressBar.style.transform = `scaleX(${scrollRange > 0 ? scrollTop / scrollRange : 0})`;
       backToTop.classList.toggle('visible', scrollTop > 650);
       if (heroOrbit) heroOrbit.style.transform = `translate3d(0, ${Math.min(scrollTop * .12, 90)}px, 0)`;
+      if (hero && !reduceMotion) {
+        const coverProgress = Math.min(1, scrollTop / Math.max(window.innerHeight * .9, 1));
+        hero.style.setProperty('--hero-light', String(1 - coverProgress * .28));
+      }
       scrollTicking = false;
     }
 
@@ -277,6 +299,28 @@
     const timeToMinutes = time => { const [hours, minutes] = time.split(':').map(Number); return hours * 60 + minutes; };
     const minutesToTime = minutes => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
     const scheduleEndTime = event => event[4] || minutesToTime(timeToMinutes(event[0]) + 30);
+    let scheduleRevealObserver;
+    function animateSchedule() {
+      scheduleRevealObserver?.disconnect();
+      const items = [...document.querySelectorAll('#timeline .schedule-reveal')];
+      if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      scheduleRevealObserver = new IntersectionObserver(entries => {
+        const visible = entries.filter(entry => entry.isIntersecting);
+        if (!visible.length) return;
+        const firstRow = Math.min(...visible.map(entry => Number(entry.target.dataset.waveRow)));
+        visible.forEach(({ target }) => {
+          const diagonal = Number(target.dataset.waveRow) - firstRow + Number(target.dataset.waveCol);
+          target.style.setProperty('--wave-delay', `${Math.min(diagonal * 85, 680)}ms`);
+          target.classList.remove('wave-pending');
+          target.classList.add('wave-shown');
+          scheduleRevealObserver.unobserve(target);
+        });
+      }, { threshold: .08 });
+      items.forEach(item => {
+        item.classList.add('wave-pending');
+        scheduleRevealObserver.observe(item);
+      });
+    }
     function renderSchedule(day) {
       const events = schedule[day] || [];
       const allEvents = Object.values(schedule).flat();
@@ -284,16 +328,17 @@
       const firstMinute = allMinutes.length ? Math.floor(Math.min(...allMinutes) / 30) * 30 : 540;
       const lastMinute = allMinutes.length ? Math.ceil(Math.max(...allMinutes) / 30) * 30 : 960;
       const timeSlots = Array.from({ length: Math.floor((lastMinute - firstMinute) / 30) + 1 }, (_, index) => firstMinute + index * 30);
-      const rows = timeSlots.map(slotMinute => {
+      const rows = timeSlots.map((slotMinute, rowIndex) => {
         const time = minutesToTime(slotMinute);
         const cells = scheduleVenues.map(venue => {
           const matched = events.filter(event => { const eventMinute = timeToMinutes(event[0]); return eventMinute >= slotMinute && eventMinute < slotMinute + 30 && normalizeVenue(event[2]) === venue; });
           const venueIndex = scheduleVenues.indexOf(venue);
-          return `<td>${matched.map(event => `<article class="schedule-event venue-${venueIndex}"><span>${escapeHTML(event[3])}</span><h3>${escapeHTML(event[1])}</h3><small>${escapeHTML(event[0])}–${escapeHTML(scheduleEndTime(event))}</small></article>`).join('')}</td>`;
+          return `<td>${matched.map(event => `<article class="schedule-event venue-${venueIndex} schedule-reveal" data-wave-row="${rowIndex + 1}" data-wave-col="${venueIndex + 1}"><span>${escapeHTML(event[3])}</span><h3>${escapeHTML(event[1])}</h3><small>${escapeHTML(event[0])}–${escapeHTML(scheduleEndTime(event))}</small></article>`).join('')}</td>`;
         }).join('');
         return `<tr><th scope="row"><time class="${slotMinute % 60 === 30 ? 'half-hour' : 'on-hour'}">${escapeHTML(time)}</time></th>${cells}</tr>`;
       }).join('');
-      document.querySelector('#timeline').innerHTML = events.length ? `<div class="schedule-table-wrap"><table class="schedule-grid"><thead><tr><th scope="col">TIME</th>${scheduleVenues.map((venue, index) => `<th scope="col" class="venue-head-${index}">${escapeHTML(venue)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="schedule-empty">この日の予定はまだありません。</p>';
+      document.querySelector('#timeline').innerHTML = events.length ? `<div class="schedule-table-wrap"><table class="schedule-grid"><thead><tr><th scope="col">TIME</th>${scheduleVenues.map((venue, index) => `<th scope="col" class="venue-head-${index} schedule-reveal" data-wave-row="0" data-wave-col="${index + 1}">${escapeHTML(venue)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="schedule-empty">この日の予定はまだありません。</p>';
+      animateSchedule();
     }
     renderSchedule('day1');
     document.querySelectorAll('.day-tabs button').forEach(button => button.addEventListener('click', () => {

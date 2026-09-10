@@ -60,3 +60,11 @@ button,input{font:inherit}
 .map-pin>i{background:var(--pin-color);box-shadow:none}
 .map-title b{display:flex;align-items:center;justify-content:center;gap:10px}.map-title b em{padding:4px 7px;border:1px solid #f4df35;color:#f4df35;font-style:normal;font-size:11px;line-height:1;letter-spacing:.12em;transform:skewX(-8deg)}.map-title b span{font:inherit}
 @media(max-width:800px){.map-title b{gap:6px}.map-title b em{padding:3px 5px;font-size:9px}}
+
+/* Pink accents stay on the interface, never on the exhibition pins. */
+.map-header{background:linear-gradient(110deg,#03180f,#0a3d25 70%,#3b2941)}
+.map-header::after{background:linear-gradient(90deg,#2f9e44,#f4df35,#ff86be)}
+.map-sidebar{background:radial-gradient(ellipse at 5% 90%,rgba(255,134,190,.12),transparent 45%),linear-gradient(180deg,#0a3925,#03180f)}
+.map-stage{background:radial-gradient(ellipse at 90% 8%,rgba(255,134,190,.19),transparent 33%),radial-gradient(ellipse at 10% 85%,rgba(244,223,53,.18),transparent 30%),linear-gradient(135deg,#f8fbe9,#d9edbf)}
+.back-link:hover{color:#ff86be}.map-booth-sheet{border-top-color:#ff86be}.map-title b em{border-color:#ff86be;color:#ffacd2}
+@media(max-width:800px){.back-link{font-size:10px;gap:6px}}

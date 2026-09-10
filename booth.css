@@ -23,3 +23,8 @@
 
 /* PRESERVE EACH EXHIBITION HERO COLOR */
 .detail-hero{background:radial-gradient(circle at 76% 38%,rgba(244,223,53,.2),transparent 20%),linear-gradient(135deg,var(--booth-color),#185233 62%,#08271b 118%)}
+
+/* Pink light around the content; keep the group's selected main color. */
+.detail-hero::after{background:linear-gradient(90deg,#238c45,#f4df35,#ff86be)}
+.detail-content{background:radial-gradient(ellipse at 90% 10%,rgba(255,134,190,.16),transparent 35%),linear-gradient(180deg,#fbfdec,#edf6df)}
+.detail-brand small{color:#ffacd2;opacity:1}
