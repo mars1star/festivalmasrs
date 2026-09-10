@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#07111f">
+  <meta name="theme-color" content="#062b1b">
   <meta name="description" content="第68回聖光祭の展示場所を探せる全画面校内マップ。">
   <title>CAMPUS MAP | 68th SEIKO FESTA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 <body>
   <header class="map-header">
     <a class="back-link" href="index.html"><span>←</span> SITE TOP</a>
-    <div class="map-title"><b>CAMPUS MAP</b><small>展示場所をタップして紹介を見る</small></div>
+    <div class="map-title"><b><em>萌芽</em><span>CAMPUS MAP</span></b><small>展示場所をタップして紹介を見る</small></div>
     <div class="floor-name" id="floor-name">1F <span>/ GROUND FLOOR</span></div>
   </header>
 
@@ -267,9 +267,17 @@
     }, { passive: false });
 
     viewport.addEventListener("pointerdown", event => {
-      if (event.target.closest(".map-pin")) return;
-      viewport.setPointerCapture(event.pointerId);
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      const startsOnPin = Boolean(event.target.closest(".map-pin"));
+      if (!startsOnPin) {
+        event.preventDefault();
+        viewport.setPointerCapture(event.pointerId);
+      }
       activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (activePointers.size === 2) {
+        const points = [...activePointers.values()];
+        previousPinchDistance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      }
       viewport.classList.add("dragging");
     });
 
@@ -284,6 +292,7 @@
         translateY += event.clientY - previous.y;
         applyTransform();
       } else if (points.length === 2) {
+        event.preventDefault();
         const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
         const centerX = (points[0].x + points[1].x) / 2;
         const centerY = (points[0].y + points[1].y) / 2;

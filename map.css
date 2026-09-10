@@ -34,3 +34,29 @@ button,input{font:inherit}
 
 /* ピン名はカーソルを合わせた時だけ上に表示 */
 .map-pin em{display:block!important;position:absolute;left:50%;bottom:calc(100% + 10px);padding:8px 10px;opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,8px);transition:opacity .18s ease,transform .18s ease,visibility .18s;filter:none}.map-pin:hover em,.map-pin:focus-visible em{opacity:1;visibility:visible;transform:translate(-50%,0);background:var(--ink)}
+
+/* TWILIGHT THEME */
+:root{--ink:#1c1028;--panel:#25132e;--paper:#ffe8b1;--orange:#ff6a00;--lime:#ffd43b}.map-header{background:linear-gradient(90deg,rgba(28,16,40,.98),rgba(67,25,42,.96))}.map-sidebar{background:linear-gradient(180deg,#25132e,#1c1028)}.map-stage{background:linear-gradient(135deg,#fff1c9,#ffd991)}.floor-tabs button.active{background:linear-gradient(180deg,var(--orange),#ff9c1a)}.sheet-detail{background:linear-gradient(90deg,var(--orange),#ff9c1a)}
+
+/* HOGA GREEN THEME */
+:root{--ink:#08271b;--panel:#0a3021;--paper:#edf6df;--orange:#2f9e44;--lime:#b7e44a}.map-header{background:linear-gradient(90deg,rgba(4,25,17,.98),rgba(14,65,37,.97))}.map-sidebar{background:linear-gradient(180deg,#0a3021,#041911)}.map-stage{background:radial-gradient(circle at 70% 20%,rgba(183,228,74,.2),transparent 28%),linear-gradient(135deg,#f5faeb,#dcefc7)}.floor-tabs button.active{background:linear-gradient(180deg,#24823a,#65b83c)}.sheet-detail{background:linear-gradient(90deg,#24823a,#65b83c)}
+
+/* DEEP GREEN + YELLOW MAP */
+.map-header{background:linear-gradient(105deg,#03180f,#0a3d25 62%,#756f16)}
+.map-header::after{content:"";position:absolute;inset:auto 0 0;height:2px;background:linear-gradient(90deg,#2f9e44,#f4df35,#b7e44a);box-shadow:0 0 18px rgba(244,223,53,.45)}
+.map-sidebar{background:radial-gradient(circle at 20% 8%,rgba(244,223,53,.1),transparent 23%),linear-gradient(180deg,#0a3925,#03180f)}
+.map-stage{background:radial-gradient(circle at 76% 18%,rgba(244,223,53,.22),transparent 25%),radial-gradient(circle at 14% 82%,rgba(55,190,97,.16),transparent 28%),linear-gradient(135deg,#f8fbe9,#d9edbf)}
+.map-stage::before{background-image:linear-gradient(rgba(20,92,49,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(20,92,49,.055) 1px,transparent 1px)}
+.floor-tabs{border-color:rgba(8,39,27,.22);box-shadow:0 14px 36px rgba(8,39,27,.16)}
+.floor-tabs button.active{background:linear-gradient(145deg,#166f39,#bad638);color:#fff}
+.map-pin>i{background:linear-gradient(145deg,#f4df35 0 38%,#43ad53 38% 100%);border-color:#fffef0;box-shadow:0 0 0 2px rgba(8,39,27,.17)}
+.map-pin>i span{color:#08271b}.map-pin:hover em,.map-pin:focus-visible em{background:#08271b;border-bottom:2px solid #f4df35}
+.map-controls{border-color:rgba(8,39,27,.2);box-shadow:0 12px 34px rgba(8,39,27,.18)}
+.map-controls button:hover{background:#f4df35}.map-hint span{background:#f4df35;box-shadow:0 0 10px rgba(244,223,53,.5)}
+.map-booth-sheet{background:rgba(3,24,15,.97);border-top:2px solid #f4df35;box-shadow:0 24px 60px rgba(8,39,27,.38)}
+.sheet-marker{background:linear-gradient(145deg,#f4df35,#7abf3a)}.sheet-detail{background:linear-gradient(90deg,#1d833f,#a9c936)}
+
+/* PRESERVE EACH EXHIBITION COLOR */
+.map-pin>i{background:var(--pin-color);box-shadow:none}
+.map-title b{display:flex;align-items:center;justify-content:center;gap:10px}.map-title b em{padding:4px 7px;border:1px solid #f4df35;color:#f4df35;font-style:normal;font-size:11px;line-height:1;letter-spacing:.12em;transform:skewX(-8deg)}.map-title b span{font:inherit}
+@media(max-width:800px){.map-title b{gap:6px}.map-title b em{padding:3px 5px;font-size:9px}}

@@ -24,6 +24,7 @@
         <button type="button" class="active" data-section="news"><span>01</span>ニュース</button>
         <button type="button" data-section="booths"><span>02</span>展示・企画</button>
         <button type="button" data-section="schedule"><span>03</span>予定表</button>
+        <button type="button" data-section="countdown"><span>04</span>カウントダウン</button>
       </nav>
       <div class="save-guide"><b>使い方</b><p>内容を編集したあと「サイトへ反映」を押し、保存先の <code>site-data.js</code> を上書きしてください。</p></div>
     </aside>
@@ -50,13 +51,15 @@
   <script>
     const clone = value => JSON.parse(JSON.stringify(value));
     const data = clone(window.SITE_DATA);
+    data.settings ||= { countdownAt: '2027-04-25T09:00' };
     let currentSection = 'news';
     let selectedId = null;
 
     const sectionInfo = {
       news: { title: 'ニュース', kicker: 'LATEST UPDATE', editor: 'ニュース', empty: 'ニュースはまだありません。' },
       booths: { title: '展示・企画', kicker: 'BOOTH GUIDE', editor: '展示企画', empty: '展示企画はまだありません。' },
-      schedule: { title: '予定表', kicker: 'SCHEDULE', editor: '予定', empty: '予定はまだありません。' }
+      schedule: { title: '予定表', kicker: 'SCHEDULE', editor: '予定', empty: '予定はまだありません。' },
+      countdown: { title: 'カウントダウン', kicker: 'COUNTDOWN', editor: '開催日時', empty: '' }
     };
 
     const recordList = document.querySelector('#record-list');
@@ -69,10 +72,16 @@
     }
 
     function scheduleRecords() {
-      return ['day1', 'day2'].flatMap(day => data.schedule[day].map((item, index) => ({ id: `${day}-${index}`, day, index, time:item[0], title:item[1], place:item[2], category:item[3] })));
+      return ['day1', 'day2'].flatMap(day => data.schedule[day].map((item, index) => ({ id: `${day}-${index}`, day, index, time:item[0], endTime:item[4] || defaultEndTime(item[0]), title:item[1], place:normalizeVenue(item[2]), category:item[3] })));
     }
 
+    const scheduleVenues = ['外ステージ', '講堂', '小講堂', '音楽室2'];
+    const normalizeVenue = venue => venue === '屋外ステージ' ? '外ステージ' : venue;
+    const scheduleTimes = Array.from({ length: 23 }, (_, index) => { const minutes = 8 * 60 + index * 30; return `${String(Math.floor(minutes / 60)).padStart(2,'0')}:${String(minutes % 60).padStart(2,'0')}`; });
+    const defaultEndTime = time => scheduleTimes[Math.min(scheduleTimes.indexOf(time) + 1, scheduleTimes.length - 1)] || '09:30';
+
     function records() {
+      if (currentSection === 'countdown') return [{ id:'countdown', title:'カウントダウン終了日時', datetime:data.settings.countdownAt }];
       return currentSection === 'schedule' ? scheduleRecords() : data[currentSection];
     }
 
@@ -114,9 +123,16 @@
 
     function renderList() {
       const items = records();
+      if (currentSection === 'countdown') {
+        const item = items[0];
+        const shownDate = item.datetime ? item.datetime.replace('T', '　') : '未設定';
+        recordList.innerHTML = `<button type="button" class="record selected" data-id="countdown"><span>設定中の日時</span><b>${escapeHTML(shownDate)}</b><i>→</i></button>`;
+        recordList.querySelector('.record').addEventListener('click', () => selectRecord('countdown'));
+        return;
+      }
       recordList.innerHTML = items.length ? items.map(item => {
         const title = item.title;
-        const meta = currentSection === 'news' ? `${item.date} ・ ${item.tag}` : currentSection === 'booths' ? `${item.floor} ・ ${item.place}` : `${item.day === 'day1' ? 'DAY 1' : 'DAY 2'} ・ ${item.time} ・ ${item.place}`;
+        const meta = currentSection === 'news' ? `${item.date} ・ ${item.tag}` : currentSection === 'booths' ? `${item.floor} ・ ${item.place}` : `${item.day === 'day1' ? 'DAY 1' : 'DAY 2'} ・ ${item.time}–${item.endTime} ・ ${item.place}`;
         return `<div class="record-row" draggable="true" data-id="${escapeHTML(item.id)}"><button type="button" class="drag-handle" aria-label="ドラッグして並び替え">⋮⋮</button><button type="button" class="record ${selectedId === item.id ? 'selected' : ''}" data-id="${escapeHTML(item.id)}"><span>${escapeHTML(meta)}</span><b>${escapeHTML(title)}</b><i>→</i></button><div class="order-buttons"><button type="button" data-move="-1" aria-label="上へ移動">↑</button><button type="button" data-move="1" aria-label="下へ移動">↓</button></div></div>`;
       }).join('') : `<p class="empty-list">${sectionInfo[currentSection].empty}</p>`;
       recordList.querySelectorAll('.record').forEach(button => button.addEventListener('click', () => selectRecord(button.dataset.id)));
@@ -138,12 +154,14 @@
     }
 
     function renderForm(item = {}) {
-      document.querySelector('#editor-mode').textContent = selectedId ? '編集中' : '新規追加';
-      document.querySelector('#editor-title').textContent = `${sectionInfo[currentSection].editor}を${selectedId ? '編集' : '追加'}`;
-      deleteButton.hidden = !selectedId;
+      document.querySelector('#editor-mode').textContent = currentSection === 'countdown' ? '表示設定' : selectedId ? '編集中' : '新規追加';
+      document.querySelector('#editor-title').textContent = currentSection === 'countdown' ? 'カウントダウンを設定' : `${sectionInfo[currentSection].editor}を${selectedId ? '編集' : '追加'}`;
+      deleteButton.hidden = !selectedId || currentSection === 'countdown';
       if (currentSection === 'news') form.innerHTML = field('日付','date','date',item.date || new Date().toISOString().slice(0,10)) + field('種類','tag','select',item.tag || 'INFO',['INFO','BOOTH','IMPORTANT']) + field('見出し','title','textarea',item.title || '');
       if (currentSection === 'booths') form.innerHTML = field('企画名','title','text',item.title || '') + field('階','floor','select',item.floor || '1F',['1F','2F','3F','4F']) + field('場所','place','text',item.place || '') + field('一覧用の短い紹介文','description','textarea',item.description || '') + field('専用ページの詳しい紹介文','detail','textarea',item.detail || item.description || '') + field('検索キーワード','keywords','text',item.keywords || '') + field('英語キャッチコピー','catchcopy','text',item.catchcopy || '') + field('カードカラー','color','color',item.color || '#ff5a1f') + field('マップにピンを表示','mapVisible','select',String(item.mapVisible ?? true),[['true','表示する'],['false','表示しない']]) + field('ピンの横位置（0〜100）','mapX','number',item.mapX ?? 50) + field('ピンの縦位置（0〜100）','mapY','number',item.mapY ?? 50) + field('ピンの大きさ（24〜72）','mapSize','number',item.mapSize ?? 36);
-      if (currentSection === 'schedule') form.innerHTML = field('開催日','day','select',item.day || 'day1',['day1','day2']) + field('開始時刻','time','time',item.time || '09:00') + field('イベント名','title','text',item.title || '') + field('会場','place','text',item.place || '') + field('種類','category','select',item.category || 'EVENT',['STAGE','MUSIC','EVENT','PLAY']);
+      if (currentSection === 'schedule') form.innerHTML = field('開催日','day','select',item.day || 'day1',[['day1','DAY 1'],['day2','DAY 2']]) + field('開始時刻（30分刻み）','time','select',item.time || '09:00',scheduleTimes) + field('終了時刻（30分刻み）','endTime','select',item.endTime || defaultEndTime(item.time || '09:00'),scheduleTimes) + field('表示する名前','title','text',item.title || '') + field('会場','place','select',normalizeVenue(item.place) || '外ステージ',scheduleVenues) + field('種類','category','select',item.category || 'EVENT',['STAGE','MUSIC','EVENT','PLAY']);
+      if (currentSection === 'countdown') form.innerHTML = field('カウントダウン終了日時','countdownAt','datetime-local',item.datetime || data.settings.countdownAt || '2027-04-25T09:00') + '<p class="wide" style="font-size:12px;line-height:1.8;opacity:.6">この日時になると、トップページに「聖光祭は閉幕しました」と表示されます。</p>';
+      if (currentSection === 'schedule') form.elements.time.addEventListener('change', () => { if (form.elements.endTime.value <= form.elements.time.value) form.elements.endTime.value = defaultEndTime(form.elements.time.value); });
     }
 
     function selectRecord(id) {
@@ -159,18 +177,25 @@
     document.querySelectorAll('[data-section]').forEach(button => button.addEventListener('click', () => {
       document.querySelectorAll('[data-section]').forEach(item => item.classList.remove('active'));
       button.classList.add('active'); currentSection = button.dataset.section; selectedId = null;
+      document.querySelector('#new-button').hidden = currentSection === 'countdown';
       document.querySelector('#section-title').textContent = sectionInfo[currentSection].title;
       document.querySelector('#section-kicker').textContent = sectionInfo[currentSection].kicker;
-      renderList(); renderForm();
+      if (currentSection === 'countdown') selectedId = 'countdown';
+      renderList(); renderForm(currentSection === 'countdown' ? records()[0] : {});
     }));
 
     document.querySelector('#new-button').addEventListener('click', resetEditor);
 
     form.addEventListener('submit', event => {
       event.preventDefault(); const values = Object.fromEntries(new FormData(form));
-      if (currentSection === 'schedule') {
+      if (currentSection === 'countdown') {
+        data.settings.countdownAt = values.countdownAt;
+        selectedId = 'countdown'; renderList(); renderForm(records()[0]); status.textContent = 'カウントダウン日時を保存しました。最後に右上の「サイトへ反映」を押してください。';
+        return;
+      } else if (currentSection === 'schedule') {
+        if (values.endTime <= values.time) { status.textContent = '終了時刻は開始時刻より後に設定してください。'; return; }
         if (selectedId) { const old = scheduleRecords().find(item => item.id === selectedId); data.schedule[old.day].splice(old.index, 1); }
-        data.schedule[values.day].push([values.time, values.title, values.place, values.category]);
+        data.schedule[values.day].push([values.time, values.title, values.place, values.category, values.endTime]);
         data.schedule[values.day].sort((a,b) => a[0].localeCompare(b[0]));
       } else if (selectedId) {
         const index = data[currentSection].findIndex(item => item.id === selectedId); data[currentSection][index] = { ...data[currentSection][index], ...values };
