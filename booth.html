@@ -8,11 +8,11 @@
   <title>BOOTH | 68th SEIKO FESTA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="booth.css?v=pink-wave-1">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="booth.css?v=germinal-signal-1">
   <script src="site-data.js"></script>
 </head>
-<body>
+<body class="signal-theme detail-page">
   <header class="detail-header">
     <a href="index.html#booths"><span>←</span> BOOTH GUIDE</a>
     <a class="detail-brand" href="index.html"><b>68</b><span>SEIKO FESTA<small>萌芽</small></span></a>
@@ -27,7 +27,7 @@
         <h1 id="detail-title">展示情報を読み込んでいます</h1>
         <p class="catchcopy" id="detail-catchcopy">PLEASE WAIT.</p>
       </div>
-      <div class="detail-art" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="detail-art" aria-hidden="true"><div class="detail-logo-frame" id="detail-logo-frame" hidden><img class="detail-logo" id="detail-logo" alt="" decoding="async"></div><i></i><i></i><i></i></div>
     </section>
 
     <section class="detail-content">
@@ -57,6 +57,7 @@
     const index = booths.findIndex(booth => booth.id === id);
     const booth = booths[index];
     const validColor = value => /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#ff5a1f";
+    const safeImage = value => /^(data:image\/(?:png|jpeg|webp|avif|gif|svg\+xml);base64,|https?:\/\/|(?:\.\.?\/)?[^<>"']+\.(?:png|jpe?g|webp|avif|gif|svg)(?:\?[^<>"']*)?$)/i.test(value || '') ? value : '';
 
     if (!booth) {
       document.querySelector("#booth-detail").hidden = true;
@@ -75,6 +76,13 @@
       document.querySelector("#detail-catchcopy").textContent = booth.catchcopy || "DISCOVER MORE.";
       document.querySelector("#detail-description").textContent = booth.detail || booth.description;
       document.querySelector("#detail-place").textContent = booth.place;
+      const logo = safeImage(booth.logo);
+      if (logo) {
+        const logoImage = document.querySelector('#detail-logo');
+        logoImage.src = logo;
+        logoImage.alt = `${booth.title}のロゴ`;
+        document.querySelector('#detail-logo-frame').hidden = false;
+      }
 
       const mapURL = `map.html?booth=${encodeURIComponent(booth.id)}`;
       document.querySelector("#detail-map-link").href = mapURL;

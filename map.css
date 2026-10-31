@@ -35,7 +35,7 @@ button,input{font:inherit}
 /* ピン名はカーソルを合わせた時だけ上に表示 */
 .map-pin em{display:block!important;position:absolute;left:50%;bottom:calc(100% + 10px);padding:8px 10px;opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,8px);transition:opacity .18s ease,transform .18s ease,visibility .18s;filter:none}.map-pin:hover em,.map-pin:focus-visible em{opacity:1;visibility:visible;transform:translate(-50%,0);background:var(--ink)}
 
-/* TWILIGHT THEME */
+/* HOGA THEME */
 :root{--ink:#1c1028;--panel:#25132e;--paper:#ffe8b1;--orange:#ff6a00;--lime:#ffd43b}.map-header{background:linear-gradient(90deg,rgba(28,16,40,.98),rgba(67,25,42,.96))}.map-sidebar{background:linear-gradient(180deg,#25132e,#1c1028)}.map-stage{background:linear-gradient(135deg,#fff1c9,#ffd991)}.floor-tabs button.active{background:linear-gradient(180deg,var(--orange),#ff9c1a)}.sheet-detail{background:linear-gradient(90deg,var(--orange),#ff9c1a)}
 
 /* HOGA GREEN THEME */
@@ -68,3 +68,77 @@ button,input{font:inherit}
 .map-stage{background:radial-gradient(ellipse at 90% 8%,rgba(255,134,190,.19),transparent 33%),radial-gradient(ellipse at 10% 85%,rgba(244,223,53,.18),transparent 30%),linear-gradient(135deg,#f8fbe9,#d9edbf)}
 .back-link:hover{color:#ff86be}.map-booth-sheet{border-top-color:#ff86be}.map-title b em{border-color:#ff86be;color:#ffacd2}
 @media(max-width:800px){.back-link{font-size:10px;gap:6px}}
+
+/* Keep exhibition numbers readable without changing the restored map design. */
+.map-pin>i span{color:var(--pin-text,#fff)}
+
+/* RESPONSIVE MAP STABILITY */
+html,body{min-width:280px;overflow:hidden}
+.map-header{grid-template-columns:minmax(140px,1fr) auto minmax(140px,1fr);padding-inline:clamp(12px,3vw,24px)}
+.map-title,.floor-name{min-width:0}.map-title b,.floor-name{white-space:nowrap}
+.map-app{min-width:0}.map-stage,.map-sidebar{min-width:0}
+.map-transform{max-width:calc(100% - 44px);max-height:calc(100% - 44px)}
+.map-transform>img{display:block;max-width:none}
+@media(max-width:1050px) and (min-width:801px){.map-app{grid-template-columns:260px minmax(0,1fr)}.map-header{grid-template-columns:minmax(130px,1fr) auto minmax(130px,1fr)}.map-search{width:100%}.map-transform{inset:72px 24px 66px}.map-hint{left:24px}}
+@media(max-width:800px){.map-header{grid-template-columns:auto minmax(0,1fr) auto}.map-title{justify-self:center}.map-title b{white-space:normal;text-align:center}.map-app{height:100dvh}.map-transform{max-width:calc(100% - 20px);max-height:calc(100% - 100px)}.booth-list a{flex-basis:clamp(210px,72vw,260px)}}
+@media(max-width:390px){.map-header{padding-inline:9px}.map-title b{font-size:10px}.floor-tabs button{width:43px}.map-search{left:108px}.map-controls button{padding:0 9px}.map-hint{max-width:112px}}
+@media(max-height:600px) and (min-width:801px){.map-header{height:62px}.map-app{padding-top:62px}.map-sidebar{padding-top:24px}.map-transform{inset:54px 22px 54px}.map-controls{bottom:12px}.map-hint{bottom:17px}}
+
+/* COUNTDOWN DESIGN SYSTEM — map */
+:root{--tech:"Orbitron","DM Sans",sans-serif;--tech-green:#b7e44a;--tech-deep:#03150e;--tech-line:rgba(183,228,74,.22)}
+.map-header{background:linear-gradient(90deg,rgba(3,21,14,.99),rgba(8,39,27,.98));border-bottom-color:var(--tech-line)}
+.map-header::after{height:1px;background:linear-gradient(90deg,var(--tech-green),rgba(255,255,255,.18),transparent);box-shadow:0 0 12px rgba(183,228,74,.3)}
+.back-link,.map-title,.floor-name,.sidebar-heading,.map-search,.floor-tabs,.map-controls,.map-hint,.map-pin>i span,.sheet-copy p,.sheet-detail{font-family:var(--tech)}
+.map-title b em{border-color:var(--tech-green);color:var(--tech-green)}.back-link:hover{color:var(--tech-green)}
+.map-sidebar{background:radial-gradient(circle at 18% 8%,rgba(183,228,74,.08),transparent 24%),linear-gradient(180deg,#08271b,#03150e);border-right-color:var(--tech-line)}
+.map-search{border-color:var(--tech-line);background:rgba(255,255,255,.025)}.map-search span,.sidebar-heading strong span{color:var(--tech-green)}
+.booth-list a{border-bottom-color:rgba(183,228,74,.12)}.booth-list a:hover{background:rgba(183,228,74,.055)}
+.map-stage{background:radial-gradient(circle at 88% 8%,rgba(183,228,74,.15),transparent 25%),linear-gradient(145deg,#f8fbe9,#e5f1d6)}
+.map-stage::before{background-image:linear-gradient(rgba(8,39,27,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(8,39,27,.05) 1px,transparent 1px)}
+.map-stage::after{content:"";position:absolute;right:4%;top:5%;width:92px;height:92px;border:1px solid rgba(47,158,68,.18);border-radius:50%;background:repeating-conic-gradient(rgba(47,158,68,.26) 0 1deg,transparent 1deg 30deg);mask:radial-gradient(circle,transparent 0 72%,#000 73%);-webkit-mask:radial-gradient(circle,transparent 0 72%,#000 73%);pointer-events:none}
+.floor-tabs{border-color:rgba(8,39,27,.18)}.floor-tabs button{font-family:var(--tech)}.floor-tabs button.active{background:#08271b;color:var(--tech-green)}
+.map-controls{border-color:rgba(8,39,27,.18)}.map-controls button:hover{background:var(--tech-green)}
+.map-booth-sheet{border-top-color:var(--tech-green);background:rgba(3,21,14,.97)}.sheet-copy p{color:var(--tech-green)}
+.sheet-detail{border:1px solid var(--tech-line);background:transparent;color:var(--tech-green)}.sheet-detail:hover{background:rgba(183,228,74,.08)}
+@media(max-width:800px){.map-stage::after{right:-28px;top:68px;width:72px;height:72px}}
+
+/* =========================================================
+   GERMINAL SIGNAL — CAMPUS MAP
+   ========================================================= */
+.signal-theme{--soil:#020c08;--forest:#041a11;--panel:#08271b;--signal:#c7f04a;--ivory:#f4f6e9;--hair:rgba(199,240,74,.22);--ui:"Orbitron","DM Sans",sans-serif;background:var(--soil)}
+.signal-theme .map-header{height:76px;padding-inline:clamp(16px,3vw,28px);border-bottom:1px solid rgba(199,240,74,.16);background:rgba(2,12,8,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.signal-theme .map-header::after{height:1px;background:linear-gradient(90deg,var(--signal),rgba(199,240,74,.08),transparent);box-shadow:0 0 12px rgba(199,240,74,.4)}
+.signal-theme .back-link,.signal-theme .map-title,.signal-theme .floor-name{font-family:var(--ui)}
+.signal-theme .back-link{color:var(--signal);opacity:.8}.signal-theme .map-title b{font-size:13px}.signal-theme .map-title b em{border-color:var(--signal);color:var(--signal)}
+.signal-theme .floor-name{font-size:19px;color:var(--ivory)}
+.signal-theme .map-app{grid-template-columns:300px minmax(0,1fr);padding-top:76px}
+.signal-theme .map-sidebar{padding:30px 22px 22px;border-right:1px solid var(--hair);background:radial-gradient(circle at 12% 8%,rgba(199,240,74,.07),transparent 25%),linear-gradient(180deg,#061f15,#020c08)}
+.signal-theme .sidebar-heading,.signal-theme .map-search,.signal-theme .booth-list{font-family:var(--ui)}
+.signal-theme .sidebar-heading p{color:var(--signal);opacity:.7}.signal-theme .sidebar-heading strong span{color:var(--signal)}
+.signal-theme .map-search{height:46px;padding-inline:4px;border:0;border-bottom:1px solid var(--hair);background:transparent}.signal-theme .map-search span{color:var(--signal)}
+.signal-theme .booth-list{scrollbar-color:var(--signal) transparent}.signal-theme .booth-list a{padding:15px 5px;border-bottom:1px solid rgba(199,240,74,.11)}
+.signal-theme .booth-list a:hover{padding-left:11px;background:linear-gradient(90deg,rgba(199,240,74,.05),transparent)}
+.signal-theme .booth-list b{font-family:"DM Sans","Noto Sans JP",sans-serif;color:var(--ivory)}
+.signal-theme .map-stage{background:radial-gradient(circle at 88% 8%,rgba(79,203,115,.1),transparent 24%),linear-gradient(145deg,#f7faed,#e6efdb);box-shadow:none}
+.signal-theme .map-stage::before{background-image:linear-gradient(rgba(6,23,15,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(6,23,15,.045) 1px,transparent 1px);background-size:42px 42px}
+.signal-theme .map-stage::after{right:5%;top:5%;width:110px;height:110px;border-color:rgba(35,122,60,.18);background:repeating-conic-gradient(rgba(35,122,60,.28) 0 1deg,transparent 1deg 30deg)}
+.signal-theme .floor-tabs{left:20px;top:22px;border:0;box-shadow:none;background:transparent}
+.signal-theme .floor-tabs::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(6,23,15,.16);transform:translateX(-50%)}
+.signal-theme .floor-tabs button{z-index:1;width:52px;height:48px;margin-bottom:4px;border:1px solid rgba(6,23,15,.14);background:rgba(244,246,233,.88);font-family:var(--ui);font-size:10px;color:#06170f}
+.signal-theme .floor-tabs button.active{border-color:#06170f;background:#06170f;color:var(--signal);box-shadow:0 0 0 3px rgba(199,240,74,.18)}
+.signal-theme .map-controls{border:1px solid rgba(6,23,15,.15);background:rgba(244,246,233,.93);box-shadow:0 14px 35px rgba(6,23,15,.14)}
+.signal-theme .map-controls button{font-family:var(--ui);font-size:10px}.signal-theme .map-controls button:hover{background:var(--signal)}
+.signal-theme .map-hint{font-family:var(--ui);color:#06170f}.signal-theme .map-hint span{border-radius:0;background:#237a3c;transform:rotate(45deg)}
+.signal-theme .map-pin>i span{font-family:var(--ui)}
+.signal-theme .map-pin:hover em,.signal-theme .map-pin:focus-visible em{border-bottom:1px solid var(--signal);background:#020c08}
+.signal-theme .map-booth-sheet{border:1px solid rgba(199,240,74,.2);border-left:4px solid var(--sheet-color,var(--signal));border-top-color:rgba(199,240,74,.2);background:rgba(2,12,8,.95);box-shadow:0 25px 70px rgba(0,0,0,.35)}
+.signal-theme .sheet-copy p,.signal-theme .sheet-detail{font-family:var(--ui)}.signal-theme .sheet-copy p{color:var(--signal)}
+.signal-theme .sheet-detail{border:1px solid var(--hair);background:transparent;color:var(--signal)}.signal-theme .sheet-detail:hover{background:var(--signal);color:var(--soil)}
+@media(max-width:1050px) and (min-width:801px){.signal-theme .map-app{grid-template-columns:250px minmax(0,1fr)}}
+@media(max-width:800px){
+  .signal-theme .map-header{height:64px}.signal-theme .map-app{height:100dvh;padding-top:64px;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 180px}
+  .signal-theme .map-sidebar{padding:14px;border-right:0;border-top:1px solid var(--hair)}.signal-theme .map-search{left:120px}
+  .signal-theme .floor-tabs{left:10px;top:10px}.signal-theme .floor-tabs::before{left:0;right:0;top:50%;bottom:auto;width:auto;height:1px;transform:none}
+  .signal-theme .floor-tabs button{width:46px;height:42px;margin:0 3px 0 0}.signal-theme .map-stage::after{right:-28px;top:72px;width:76px;height:76px}
+  .signal-theme .booth-list a{flex-basis:clamp(210px,72vw,260px)}
+}

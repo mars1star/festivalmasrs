@@ -7,8 +7,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin.css?v=compact-1">
   <style>input[type="color"]{height:52px;padding:4px!important;cursor:pointer}input[type="color"]::-webkit-color-swatch-wrapper{padding:0}input[type="color"]::-webkit-color-swatch{border:0;border-radius:4px}.record-row{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;border-bottom:1px solid var(--line);transition:.15s}.record-row.drag-over{background:#ff5a1f14;box-shadow:inset 0 2px var(--orange)}.record-row .record{border-bottom:0}.drag-handle{border:0;background:transparent;color:var(--ink);opacity:.35;cursor:grab;font-weight:700}.drag-handle:active{cursor:grabbing}.order-buttons{display:grid;align-content:center;gap:2px}.order-buttons button{width:30px;height:26px;border:0;background:transparent;color:var(--ink);cursor:pointer}.order-buttons button:hover{background:#fff}.order-help{margin:-18px 0 22px;font-size:10px;opacity:.5}@media(max-width:600px){.record-row{grid-template-columns:24px minmax(0,1fr) 32px}.drag-handle{padding:0}}</style>
+  <style>
+    :root{--ink:#08271b;--paper:#edf5e8;--orange:#2f9e44;--lime:#c8ea4b;--line:rgba(8,39,27,.15)}
+    body{background:radial-gradient(circle at 85% 8%,rgba(200,234,75,.16),transparent 28%),var(--paper)}
+    .admin-header{background:linear-gradient(105deg,#03180f,#0a4428 72%,#68751a);box-shadow:0 8px 28px rgba(3,24,15,.18)}.header-actions button{background:linear-gradient(135deg,#2f9e44,#72b83d);border-color:#8ccf46}
+    .admin-sidebar{background:linear-gradient(180deg,#e6f1df,#dcebd5)}.admin-sidebar nav button.active{background:linear-gradient(100deg,#0a3b26,#17643a);box-shadow:inset 3px 0 var(--lime)}
+    .records-panel{background:rgba(246,250,241,.62)}.editor-panel{background:rgba(250,252,247,.9)}.record:hover,.record.selected{background:#fff;box-shadow:inset 3px 0 var(--orange)}
+    .editor-form input:focus,.editor-form select:focus,.editor-form textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(47,158,68,.13)}.record-row.drag-over{background:rgba(47,158,68,.09)!important;box-shadow:inset 0 2px var(--orange)!important}
+    .logo-field{display:grid;gap:8px;grid-column:1/-1}.logo-field>span{font-size:10px;font-weight:700}.logo-uploader{display:grid;grid-template-columns:150px 1fr;gap:18px;padding:16px;border:1px solid var(--line);background:#fff}
+    .logo-preview{height:116px;display:grid;place-items:center;background:#edf5e8;border:1px dashed rgba(8,39,27,.25);overflow:hidden}.logo-preview small{font-size:9px;letter-spacing:.14em;opacity:.4}.logo-preview img{display:block;width:100%;height:100%;padding:12px;object-fit:contain;background:#fff}
+    .logo-controls{display:flex;align-items:flex-start;align-content:center;flex-wrap:wrap;gap:8px}.logo-pick,.logo-controls button{display:inline-flex!important;width:auto!important;padding:11px 14px;border:0;background:var(--ink);color:#fff;font-size:10px;font-weight:700;cursor:pointer}.logo-pick input{display:none}.logo-controls button{background:#e5eee0;color:var(--ink)}.logo-controls button:disabled{opacity:.4;cursor:not-allowed}.logo-controls p{flex-basis:100%;margin:4px 0 0;font-size:9px;line-height:1.6;opacity:.55}
+    .countdown-help{margin:0;padding:14px 16px;background:#e9f4df;border-left:3px solid var(--orange);font-size:11px;line-height:1.8}.countdown-record b+span{margin-top:12px}
+    @media(max-width:600px){.logo-uploader{grid-template-columns:1fr}.logo-preview{height:130px}}@media(max-width:900px){.admin-sidebar nav{grid-template-columns:repeat(4,1fr)}}
+  </style>
   <script src="site-data.js"></script>
 </head>
 <body>
@@ -51,7 +64,11 @@
   <script>
     const clone = value => JSON.parse(JSON.stringify(value));
     const data = clone(window.SITE_DATA);
-    data.settings ||= { countdownAt: '2027-04-25T09:00' };
+    data.settings ||= {};
+    data.settings.day1Start ||= data.settings.countdownAt || '2027-04-25T09:00';
+    data.settings.day1End ||= '2027-04-25T16:00';
+    data.settings.day2Start ||= '2027-04-26T09:00';
+    data.settings.day2End ||= '2027-04-26T16:00';
     let currentSection = 'news';
     let selectedId = null;
 
@@ -81,7 +98,7 @@
     const defaultEndTime = time => scheduleTimes[Math.min(scheduleTimes.indexOf(time) + 1, scheduleTimes.length - 1)] || '09:30';
 
     function records() {
-      if (currentSection === 'countdown') return [{ id:'countdown', title:'カウントダウン終了日時', datetime:data.settings.countdownAt }];
+      if (currentSection === 'countdown') return [{ id:'countdown', title:'開催日時', ...data.settings }];
       return currentSection === 'schedule' ? scheduleRecords() : data[currentSection];
     }
 
@@ -125,8 +142,8 @@
       const items = records();
       if (currentSection === 'countdown') {
         const item = items[0];
-        const shownDate = item.datetime ? item.datetime.replace('T', '　') : '未設定';
-        recordList.innerHTML = `<button type="button" class="record selected" data-id="countdown"><span>設定中の日時</span><b>${escapeHTML(shownDate)}</b><i>→</i></button>`;
+        const shown = value => value ? value.replace('T', ' ') : '未設定';
+        recordList.innerHTML = `<button type="button" class="record selected countdown-record" data-id="countdown"><span>1日目</span><b>${escapeHTML(shown(item.day1Start))} 〜 ${escapeHTML(shown(item.day1End))}</b><span>2日目</span><b>${escapeHTML(shown(item.day2Start))} 〜 ${escapeHTML(shown(item.day2End))}</b><i>→</i></button>`;
         recordList.querySelector('.record').addEventListener('click', () => selectRecord('countdown'));
         return;
       }
@@ -153,15 +170,49 @@
       return `<label><span>${label}</span><input name="${name}" type="${type}" value="${escapeHTML(value)}" required></label>`;
     }
 
+    function logoField(value = '') {
+      const hasLogo = Boolean(value);
+      return `<div class="logo-field wide"><span>展示ロゴ画像</span><div class="logo-uploader"><div class="logo-preview ${hasLogo ? 'has-image' : ''}" id="logo-preview">${hasLogo ? `<img src="${escapeHTML(value)}" alt="登録中のロゴ">` : '<small>NO LOGO</small>'}</div><div class="logo-controls"><label class="logo-pick">画像を選択<input id="logo-file" name="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif,image/svg+xml"></label><button id="logo-remove" type="button" ${hasLogo ? '' : 'disabled'}>ロゴを削除</button><p>PNG・JPG・WebP・AVIF・SVG（5MB以下）に対応。高画質表示には400〜512px以上の画像がおすすめです。</p></div><input id="logo-value" name="logo" type="hidden" value="${escapeHTML(value)}"></div></div>`;
+    }
+
+    function setupLogoInput() {
+      const fileInput = document.querySelector('#logo-file');
+      if (!fileInput) return;
+      const logoValue = document.querySelector('#logo-value');
+      const preview = document.querySelector('#logo-preview');
+      const remove = document.querySelector('#logo-remove');
+      const showLogo = value => {
+        logoValue.value = value;
+        preview.classList.toggle('has-image', Boolean(value));
+        preview.innerHTML = value ? `<img src="${escapeHTML(value)}" alt="登録中のロゴ">` : '<small>NO LOGO</small>';
+        remove.disabled = !value;
+      };
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) { status.textContent = '5MB以下の画像ファイルを選んでください。'; fileInput.value = ''; return; }
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+          showLogo(reader.result);
+          const probe = new Image();
+          probe.addEventListener('load', () => { status.textContent = probe.naturalWidth < 400 && probe.naturalHeight < 400 ? `ロゴを読み込みました。現在は${probe.naturalWidth}×${probe.naturalHeight}pxです。高画質表示には400px以上がおすすめです。` : '高画質ロゴを読み込みました。「内容を保存」を押してください。'; });
+          probe.src = reader.result;
+        });
+        reader.readAsDataURL(file);
+      });
+      remove.addEventListener('click', () => { fileInput.value = ''; showLogo(''); });
+    }
+
     function renderForm(item = {}) {
       document.querySelector('#editor-mode').textContent = currentSection === 'countdown' ? '表示設定' : selectedId ? '編集中' : '新規追加';
       document.querySelector('#editor-title').textContent = currentSection === 'countdown' ? 'カウントダウンを設定' : `${sectionInfo[currentSection].editor}を${selectedId ? '編集' : '追加'}`;
       deleteButton.hidden = !selectedId || currentSection === 'countdown';
       if (currentSection === 'news') form.innerHTML = field('日付','date','date',item.date || new Date().toISOString().slice(0,10)) + field('種類','tag','select',item.tag || 'INFO',['INFO','BOOTH','IMPORTANT']) + field('見出し','title','textarea',item.title || '');
-      if (currentSection === 'booths') form.innerHTML = field('企画名','title','text',item.title || '') + field('階','floor','select',item.floor || '1F',['1F','2F','3F','4F']) + field('場所','place','text',item.place || '') + field('一覧用の短い紹介文','description','textarea',item.description || '') + field('専用ページの詳しい紹介文','detail','textarea',item.detail || item.description || '') + field('検索キーワード','keywords','text',item.keywords || '') + field('英語キャッチコピー','catchcopy','text',item.catchcopy || '') + field('カードカラー','color','color',item.color || '#ff5a1f') + field('マップにピンを表示','mapVisible','select',String(item.mapVisible ?? true),[['true','表示する'],['false','表示しない']]) + field('ピンの横位置（0〜100）','mapX','number',item.mapX ?? 50) + field('ピンの縦位置（0〜100）','mapY','number',item.mapY ?? 50) + field('ピンの大きさ（24〜72）','mapSize','number',item.mapSize ?? 36);
+      if (currentSection === 'booths') form.innerHTML = field('企画名','title','text',item.title || '') + field('階','floor','select',item.floor || '1F',['1F','2F','3F','4F']) + field('場所','place','text',item.place || '') + logoField(item.logo || '') + field('一覧用の短い紹介文','description','textarea',item.description || '') + field('専用ページの詳しい紹介文','detail','textarea',item.detail || item.description || '') + field('検索キーワード','keywords','text',item.keywords || '') + field('英語キャッチコピー（ロゴ未登録時に表示）','catchcopy','text',item.catchcopy || '') + field('カードカラー','color','color',item.color || '#ff5a1f') + field('マップにピンを表示','mapVisible','select',String(item.mapVisible ?? true),[['true','表示する'],['false','表示しない']]) + field('ピンの横位置（0〜100）','mapX','number',item.mapX ?? 50) + field('ピンの縦位置（0〜100）','mapY','number',item.mapY ?? 50) + field('ピンの大きさ（24〜72）','mapSize','number',item.mapSize ?? 36);
       if (currentSection === 'schedule') form.innerHTML = field('開催日','day','select',item.day || 'day1',[['day1','DAY 1'],['day2','DAY 2']]) + field('開始時刻（30分刻み）','time','select',item.time || '09:00',scheduleTimes) + field('終了時刻（30分刻み）','endTime','select',item.endTime || defaultEndTime(item.time || '09:00'),scheduleTimes) + field('表示する名前','title','text',item.title || '') + field('会場','place','select',normalizeVenue(item.place) || '外ステージ',scheduleVenues) + field('種類','category','select',item.category || 'EVENT',['STAGE','MUSIC','EVENT','PLAY']);
-      if (currentSection === 'countdown') form.innerHTML = field('カウントダウン終了日時','countdownAt','datetime-local',item.datetime || data.settings.countdownAt || '2027-04-25T09:00') + '<p class="wide" style="font-size:12px;line-height:1.8;opacity:.6">この日時になると、トップページに「聖光祭は閉幕しました」と表示されます。</p>';
+      if (currentSection === 'countdown') form.innerHTML = field('1日目 開始日時','day1Start','datetime-local',item.day1Start) + field('1日目 終了日時','day1End','datetime-local',item.day1End) + field('2日目 開始日時','day2Start','datetime-local',item.day2Start) + field('2日目 終了日時','day2End','datetime-local',item.day2End) + '<p class="wide countdown-help">開催前はカウントダウン、開催時間中は「聖光祭 開催中」、1日目終了後は翌日の開始まで「明日の開催までお待ちください」、2日目終了後は「聖光祭は閉幕しました」と自動表示します。</p>';
       if (currentSection === 'schedule') form.elements.time.addEventListener('change', () => { if (form.elements.endTime.value <= form.elements.time.value) form.elements.endTime.value = defaultEndTime(form.elements.time.value); });
+      if (currentSection === 'booths') setupLogoInput();
     }
 
     function selectRecord(id) {
@@ -187,9 +238,11 @@
     document.querySelector('#new-button').addEventListener('click', resetEditor);
 
     form.addEventListener('submit', event => {
-      event.preventDefault(); const values = Object.fromEntries(new FormData(form));
+      event.preventDefault(); const values = Object.fromEntries(new FormData(form)); delete values.logoFile;
       if (currentSection === 'countdown') {
-        data.settings.countdownAt = values.countdownAt;
+        const times = ['day1Start','day1End','day2Start','day2End'].map(key => new Date(values[key]).getTime());
+        if (!times.every(Number.isFinite) || !(times[0] < times[1] && times[1] <= times[2] && times[2] < times[3])) { status.textContent = '開始・終了日時を順番どおりに設定してください。'; return; }
+        Object.assign(data.settings, values, { countdownAt: values.day1Start });
         selectedId = 'countdown'; renderList(); renderForm(records()[0]); status.textContent = 'カウントダウン日時を保存しました。最後に右上の「サイトへ反映」を押してください。';
         return;
       } else if (currentSection === 'schedule') {

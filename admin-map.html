@@ -7,7 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin-map.css">
+  <link rel="stylesheet" href="admin-map.css?v=compact-1">
+  <style>
+    .editor-pin{display:block;width:var(--size);height:calc(var(--size)*1.18);gap:0}.editor-pin i{width:100%;height:100%}.editor-pin span{position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%)}
+    :root{--ink:#08271b;--panel:#0a3021;--paper:#e6f1df;--orange:#2f9e44;--lime:#c8ea4b;--line:rgba(8,39,27,.15)}
+    body{background:#edf5e8}.editor-header{background:linear-gradient(105deg,#03180f,#0a4428 72%,#68751a);box-shadow:0 8px 28px rgba(3,24,15,.18)}
+    .editor-header-actions button{background:linear-gradient(135deg,#2f9e44,#72b83d);border-color:#8ccf46}.editor-sidebar{background:#f8fbf5}.editor-floors button.active{background:linear-gradient(100deg,#0a3b26,#17643a)}
+    .editor-booth-list button:hover,.editor-booth-list button.active{background:#e8f3e2}.editor-booth-list button.active{box-shadow:inset 3px 0 var(--orange)}
+    .editor-workspace{background-color:#dfeada;background-image:linear-gradient(rgba(8,39,27,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(8,39,27,.045) 1px,transparent 1px)}
+    .pin-panel{background:#f8fbf5}.pin-panel-content input[type=number]{background:#fff}.center-button:hover{background:#0a3b26}
+  </style>
   <style>[hidden]{display:none!important}.editor-svg{inset:0}</style>
   <script src="site-data.js"></script>
 </head>
@@ -54,8 +63,15 @@
     const floorLabels = { "1F":"GROUND FLOOR", "2F":"SECOND FLOOR", "3F":"THIRD FLOOR", "4F":"FOURTH FLOOR" };
     const floorAspects = { "1F":768.56/456.92, "2F":591.42/475.36, "3F":551.07/414.45, "4F":517.58/428.25 };
     const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, Number(value)));
+    const positionValue = value => Math.min(100, Math.max(0, Number.isFinite(Number(value)) ? Number(value) : 50));
     const escapeHTML = value => String(value ?? "").replace(/[&<>'"]/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[character]);
     const colorValue = value => /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#ff5a1f";
+    const contrastText = value => {
+      const color = colorValue(value).slice(1);
+      const [r, g, b] = [0, 2, 4].map(index => parseInt(color.slice(index, index + 2), 16) / 255);
+      const linear = channel => channel <= .03928 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4;
+      return .2126 * linear(r) + .7152 * linear(g) + .0722 * linear(b) > .38 ? "#08271b" : "#ffffff";
+    };
     let activeFloor = "1F";
     let selectedId = null;
     let draggedId = null;
@@ -109,12 +125,12 @@
 
     function renderList() {
       const list = floorBooths();
-      boothList.innerHTML = list.length ? list.map((booth, index) => `<button type="button" data-id="${escapeHTML(booth.id)}" class="${booth.id === selectedId ? 'active' : ''}"><i style="background:${colorValue(booth.color)}">${String(index + 1).padStart(2,'0')}</i><span><b>${escapeHTML(booth.title)}</b><small>${escapeHTML(booth.place)}</small></span><em>${booth.mapVisible === false || booth.mapVisible === 'false' ? '非表示' : '表示'}</em></button>`).join("") : '<p class="no-booths">この階に展示はありません。</p>';
+      boothList.innerHTML = list.length ? list.map((booth, index) => `<button type="button" data-id="${escapeHTML(booth.id)}" class="${booth.id === selectedId ? 'active' : ''}"><i style="background:${colorValue(booth.color)};color:${contrastText(booth.color)}">${String(index + 1).padStart(2,'0')}</i><span><b>${escapeHTML(booth.title)}</b><small>${escapeHTML(booth.place)}</small></span><em>${booth.mapVisible === false || booth.mapVisible === 'false' ? '非表示' : '表示'}</em></button>`).join("") : '<p class="no-booths">この階に展示はありません。</p>';
       boothList.querySelectorAll("button").forEach(button => button.addEventListener("click", () => selectBooth(button.dataset.id)));
     }
 
     function renderPins() {
-      pins.innerHTML = floorBooths().filter(booth => booth.mapVisible !== false && booth.mapVisible !== "false").map(booth => `<button type="button" class="editor-pin ${booth.id === selectedId ? 'selected' : ''}" data-id="${escapeHTML(booth.id)}" style="--x:${clamp(booth.mapX ?? 50,0,100)}%;--y:${clamp(booth.mapY ?? 50,0,100)}%;--size:${clamp(booth.mapSize ?? 36,24,72)}px;--color:${colorValue(booth.color)}" aria-label="${escapeHTML(booth.title)}のピンを移動"><i></i><span>${escapeHTML(booth.title)}</span></button>`).join("");
+      pins.innerHTML = floorBooths().filter(booth => booth.mapVisible !== false && booth.mapVisible !== "false").map(booth => `<button type="button" class="editor-pin ${booth.id === selectedId ? 'selected' : ''}" data-id="${escapeHTML(booth.id)}" style="--x:${positionValue(booth.mapX)}%;--y:${positionValue(booth.mapY)}%;--size:${clamp(booth.mapSize ?? 36,24,72)}px;--color:${colorValue(booth.color)}" aria-label="${escapeHTML(booth.title)}のピンを移動"><i></i><span>${escapeHTML(booth.title)}</span></button>`).join("");
       pins.querySelectorAll(".editor-pin").forEach(pin => {
         pin.addEventListener("click", () => selectBooth(pin.dataset.id));
         pin.addEventListener("pointerdown", event => { event.preventDefault(); draggedId = pin.dataset.id; selectBooth(draggedId, false); pin.setPointerCapture(event.pointerId); pin.classList.add("dragging"); });
