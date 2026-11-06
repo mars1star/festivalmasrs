@@ -140,9 +140,10 @@
     function startStage(i){setup(i);state='play';start=performance.now();last=start;$('stage-screen').classList.remove('active');$('fail').classList.remove('active');$('clear').classList.remove('active');$('hud').classList.add('active')}
     function menu(){state='menu';renderStages(Math.floor(stageIndex/25));$('hud').classList.remove('active');$('fail').classList.remove('active');$('clear').classList.remove('active');$('stage-screen').classList.add('active')}
     function updateHud(){const undoLeft=Number.isFinite(rules.undo)?Math.max(0,rules.undo-undosUsed):'∞';$('stage-number').textContent=String(stageIndex+1).padStart(3,'0');$('stage-name').textContent=STAGES[stageIndex].n;$('route').textContent=`${points.filter(p=>p.v).length} / ${points.length}`;$('meter').style.width=(points.filter(p=>p.v).length/points.length*100)+'%';$('cross-status').textContent=`${crossCount} / ${rules.cross}`;$('undo-status').textContent=undoLeft;$('undo-btn').disabled=history.length===0||Number.isFinite(rules.undo)&&undosUsed>=rules.undo;const active=[...new Set(Object.values(rules.types))],gateLegend=Object.keys(rules.gates).length?'<span style="color:#c7f04a"><b>↻</b> CW / <b>↺</b> CCW</span>':'',signalLegend=rules.channels?`<span style="color:#61e6c7"><b>${CHANNEL_LABELS.slice(0,rules.channels).join('→')}</b> SIGNAL</span>`:'';$('special-legend').innerHTML=gateLegend+signalLegend+active.map(t=>`<span style="color:${SPECIAL[t].c}"><b>${SPECIAL[t].l}</b> ${SPECIAL[t].n}</span>`).join('')}
-    function candidates(){const a=[];points.forEach((p,i)=>{if(!p.v&&p.type!=='exit')a.push(i)});return a}
+    function requiredPhase(){if(!rules.channels)return-1;const connected=points.filter((p,i)=>p.v&&i>1&&p.type!=='exit').length;return connected%rules.channels}
+    function candidates(){const phase=requiredPhase(),a=[];points.forEach((p,i)=>{if(!p.v&&p.type!=='exit'&&(!rules.channels||p.phase===phase))a.push(i)});return a}
     function diff(a,b){let d=(a-b+Math.PI)%TAU-Math.PI;if(d< -Math.PI)d+=TAU;return Math.abs(d)}
-    function target(){const p=points[current],difficulty=stageIndex/(STAGES.length-1),scale=1.28-difficulty*.6;let best=null;candidates().forEach(i=>{const q=points[i],d=Math.hypot(q.x-p.x,q.y-p.y),e=diff(angle,Math.atan2(q.y-p.y,q.x-p.x)),t=Math.min(.34,Math.max(.11,30/d))*scale;if(!best||e<best.e-.006||Math.abs(e-best.e)<=.006&&d<best.d)best={i,e,t,d}});return best}
+    function target(){const p=points[current],difficulty=stageIndex/(STAGES.length-1),scale=1.28-difficulty*.6;let best=null;candidates().forEach(i=>{const q=points[i],d=Math.hypot(q.x-p.x,q.y-p.y),e=diff(angle,Math.atan2(q.y-p.y,q.x-p.x)),t=Math.min(.34,Math.max(.11,30/d))*scale;if(!best||e<best.e||e===best.e&&d<best.d)best={i,e,t,d}});return best}
     function orient(a,b,c){const v=(b.y-a.y)*(c.x-b.x)-(b.x-a.x)*(c.y-b.y);return Math.abs(v)<.001?0:v>0?1:2}
     function intersects(a,b,c,d){return orient(a,b,c)!==orient(a,b,d)&&orient(c,d,a)!==orient(c,d,b)}
     function crossingCount(a,b){let total=0;for(let i=0;i<path.length-2;i++){if(jumpEdges.has(i))continue;const c=points[path[i]],d=points[path[i+1]];if(intersects(points[a],points[b],c,d))total++}return total}
@@ -154,7 +155,7 @@
       const t=target();
       if(!t||t.e>t.t){msg('OFF AXIS',true);return}
       const node=points[t.i];
-      const connected=points.filter((p,i)=>p.v&&i>1&&p.type!=='exit').length,neededPhase=rules.channels?connected%rules.channels:-1;
+      const neededPhase=requiredPhase();
       if(rules.channels&&node.phase!==neededPhase){msg(`SIGNAL ${CHANNEL_LABELS[neededPhase]} ONLY`,true);return}
       if(node.gate&&node.gate!==direction){msg(node.gate>0?'CLOCKWISE ONLY ↻':'COUNTER-CLOCKWISE ONLY ↺',true);return}
       if(node.type==='pulse'&&!pulseOpen(node)){msg('GATE CLOSED',true);return}
