@@ -31,12 +31,12 @@
         <p class="eyebrow">ROTATING AXIS ROUTE PUZZLE</p>
         <p class="logo">ONE LINE <b>/ AXIS PUZZLE</b></p>
         <h1><span>SELECT</span>STAGE</h1>
-        <p class="intro">25ステージを画面全体から選択。後半ほど点・交差・信号順が増えます。</p>
+        <p class="intro">25ステージを画面全体から選択。後半ほど点・交差・位相ロックが増えます。</p>
         <div class="stage-head"><b>100 NETWORKS</b><span>EASY → EXTREME</span></div>
         <div class="stage-zones" id="stage-zones"><button class="active" data-zone="0">001—025</button><button data-zone="1">026—050</button><button data-zone="2">051—075</button><button data-zone="3">076—100</button></div>
         <div class="stages" id="stages"></div>
-        <div class="rules"><div><b>01 / ROUTE</b><span>全点を一筆で通りGへ</span></div><div><b>02 / CROSS</b><span>指定された交差回数を作る</span></div><div><b>03 / SIGNAL</b><span>後半はA→B→C…の順で接続</span></div></div>
-        <p class="notice">↻・↺の回転方向、R・B・P・W→E、信号チャンネルを組み合わせて攻略します。<a href="game-rules.html">ルール詳細 →</a></p>
+        <div class="rules"><div><b>01 / ROUTE</b><span>全点を一筆で通りGへ</span></div><div><b>02 / CROSS</b><span>指定された交差回数を作る</span></div><div><b>03 / PHASE</b><span>現在点と切り欠きの向きを合わせる</span></div></div>
+        <p class="notice">↻・↺、R・B・P・W→E、外周の切り欠きを組み合わせて攻略します。正解点は光りません。<a href="game-rules.html">ルール詳細 →</a></p>
       </div>
     </section>
 
@@ -110,8 +110,6 @@
       [1968,14,[0,1,7,11,12,8,4,5,6,10,3,2,9,13]],[2002,14,[0,1,2,4,6,5,3,11,7,8,9,10,12,13]],[2013,14,[0,1,8,4,12,11,6,7,2,9,3,5,10,13]],[2050,14,[0,1,12,6,10,9,2,7,5,11,4,8,3,13]],[2108,14,[0,1,4,12,6,3,8,10,9,11,2,5,7,13]],[2143,14,[0,1,9,12,8,3,2,6,7,4,10,11,5,13]],[2190,14,[0,1,4,7,2,10,8,3,6,12,9,5,11,13]],[2216,14,[0,1,5,12,10,9,4,11,7,8,3,6,2,13]],[2237,14,[0,1,12,4,8,9,10,3,6,5,7,11,2,13]],[2305,15,[0,1,5,8,9,3,4,10,13,7,2,12,11,6,14]]
     ];
     const STAGE_TITLES=['SEED','VECTOR','PRISM','CIRCUIT','MATRIX','ORBIT','FRACTURE','NEXUS','PARALLAX','SINGULAR'];
-    const CHANNEL_COLORS=['#67b9ff','#ffd349','#f05aa6','#a883ff','#61e6c7','#ff8b5f'];
-    const CHANNEL_LABELS=['A','B','C','D','E','F'];
     function seededRandom(seed){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296)}
     function makePoints(seed,count){const rnd=seededRandom(seed),out=[];while(out.length<count){const p=[+(.04+rnd()*.92).toFixed(3),+(.05+rnd()*.9).toFixed(3)];if(out.every(q=>Math.hypot(p[0]-q[0],p[1]-q[1])>.05))out.push(p)}return out}
     function channelCount(i){return i<30?0:i<45?2:i<65?3:i<82?4:i<99?5:6}
@@ -126,8 +124,8 @@
       if(i>=25){const node=stage.route.slice(2,-1).find(node=>!occupied(node));if(node!==undefined)types[node]='boost'}
       if(i>=40){const node=stage.route.slice(3,-1).find(node=>!occupied(node)&&!types[node]);if(node!==undefined)types[node]='pulse'}
       if(warpPair){types[warpPair[0]]='warp';types[warpPair[1]]='exit'}
-      let dir=initial,signalStep=0;
-      stage.route.forEach((node,pos)=>{if(pos>=2&&(!warpPair||node!==warpPair[1])){gates[node]=dir;if(channels)phases[node]=signalStep++%channels}if(reverseNodes.has(node))dir*=-1});
+      let dir=initial,phaseStep=0;
+      stage.route.forEach((node,pos)=>{if(pos>=2&&(!warpPair||node!==warpPair[1])){gates[node]=dir;if(channels)phases[node]=phaseStep++%channels}if(reverseNodes.has(node))dir*=-1});
       return{cross:stage.cross,undo:i<45?Infinity:i<65?5:i<80?3:i<94?2:1,types,gates,phases,channels,reverseNodes,warpPair,fade:i>=90}
     }
     let w=0,h=0,dpr=1,state='menu',stageIndex=0,points=[],path=[],current=1,angle=-1.4,direction=1,start=0,last=performance.now(),elapsed=0,pulse=0,rules=null,history=[],jumpEdges=new Set(),crossSegments=new Set(),crossCount=0,undosUsed=0,speedBoost=1;
@@ -135,11 +133,11 @@
     function resize(){dpr=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);mapPoints()}
     function mapPoints(){if(!points.length)return;const b=bounds();points.forEach(o=>{o.x=b.l+o.nx*(b.r-b.l);o.y=b.t+o.ny*(b.b-b.t)})}
     function difficultyName(i){return i<10?'INTRO':i<25?'EASY':i<45?'NORMAL':i<65?'HARD':i<80?'EXPERT':i<95?'NIGHTMARE':'EXTREME'}
-    function renderStages(zone=0){const start=zone*25,end=Math.min(start+25,STAGES.length);$('stages').innerHTML=STAGES.slice(start,end).map((stage,k)=>{const i=start+k,r=stageRules(i),tag=`CROSS ×${r.cross}${r.channels?` / ${r.channels}CH`:''}`;return`<button class="stage${i===99?' final':''}" data-stage="${i}"><strong>${String(i+1).padStart(3,'0')}</strong><span>${stage.n}<small>${stage.p.length} NODES / ${difficultyName(i)}</small></span><i>${tag}</i></button>`}).join('');$('stages').querySelectorAll('.stage').forEach(b=>b.addEventListener('click',()=>startStage(Number(b.dataset.stage))));document.querySelectorAll('#stage-zones button').forEach(b=>b.classList.toggle('active',Number(b.dataset.zone)===zone))}
+    function renderStages(zone=0){const start=zone*25,end=Math.min(start+25,STAGES.length);$('stages').innerHTML=STAGES.slice(start,end).map((stage,k)=>{const i=start+k,r=stageRules(i),tag=`CROSS ×${r.cross}${r.channels?' / PHASE':''}`;return`<button class="stage${i===99?' final':''}" data-stage="${i}"><strong>${String(i+1).padStart(3,'0')}</strong><span>${stage.n}<small>${stage.p.length} NODES / ${difficultyName(i)}</small></span><i>${tag}</i></button>`}).join('');$('stages').querySelectorAll('.stage').forEach(b=>b.addEventListener('click',()=>startStage(Number(b.dataset.stage))));document.querySelectorAll('#stage-zones button').forEach(b=>b.classList.toggle('active',Number(b.dataset.zone)===zone))}
     function setup(i){stageIndex=i;const g=STAGES[i];rules=stageRules(i);points=g.p.map(([nx,ny],j)=>({nx,ny,x:0,y:0,v:j<2,start:j===0,goal:j===g.p.length-1,type:rules.types[j]||'normal',gate:rules.gates[j]||0,phase:rules.phases[j]??-1}));mapPoints();path=[0,1];current=1;history=[];jumpEdges=new Set();crossSegments=new Set();crossCount=0;undosUsed=0;speedBoost=1;elapsed=0;pulse=0;angle=-1.4;direction=i%2?-1:1;updateHud()}
     function startStage(i){setup(i);state='play';start=performance.now();last=start;$('stage-screen').classList.remove('active');$('fail').classList.remove('active');$('clear').classList.remove('active');$('hud').classList.add('active')}
     function menu(){state='menu';renderStages(Math.floor(stageIndex/25));$('hud').classList.remove('active');$('fail').classList.remove('active');$('clear').classList.remove('active');$('stage-screen').classList.add('active')}
-    function updateHud(){const undoLeft=Number.isFinite(rules.undo)?Math.max(0,rules.undo-undosUsed):'∞';$('stage-number').textContent=String(stageIndex+1).padStart(3,'0');$('stage-name').textContent=STAGES[stageIndex].n;$('route').textContent=`${points.filter(p=>p.v).length} / ${points.length}`;$('meter').style.width=(points.filter(p=>p.v).length/points.length*100)+'%';$('cross-status').textContent=`${crossCount} / ${rules.cross}`;$('undo-status').textContent=undoLeft;$('undo-btn').disabled=history.length===0||Number.isFinite(rules.undo)&&undosUsed>=rules.undo;const active=[...new Set(Object.values(rules.types))],gateLegend=Object.keys(rules.gates).length?'<span style="color:#c7f04a"><b>↻</b> CW / <b>↺</b> CCW</span>':'',signalLegend=rules.channels?`<span style="color:#61e6c7"><b>${CHANNEL_LABELS.slice(0,rules.channels).join('→')}</b> SIGNAL</span>`:'';$('special-legend').innerHTML=gateLegend+signalLegend+active.map(t=>`<span style="color:${SPECIAL[t].c}"><b>${SPECIAL[t].l}</b> ${SPECIAL[t].n}</span>`).join('')}
+    function updateHud(){const undoLeft=Number.isFinite(rules.undo)?Math.max(0,rules.undo-undosUsed):'∞';$('stage-number').textContent=String(stageIndex+1).padStart(3,'0');$('stage-name').textContent=STAGES[stageIndex].n;$('route').textContent=`${points.filter(p=>p.v).length} / ${points.length}`;$('meter').style.width=(points.filter(p=>p.v).length/points.length*100)+'%';$('cross-status').textContent=`${crossCount} / ${rules.cross}`;$('undo-status').textContent=undoLeft;$('undo-btn').disabled=history.length===0||Number.isFinite(rules.undo)&&undosUsed>=rules.undo;const active=[...new Set(Object.values(rules.types))],gateLegend=Object.keys(rules.gates).length?'<span style="color:#c7f04a"><b>↻</b> CW / <b>↺</b> CCW</span>':'',phaseLegend=rules.channels?'<span style="color:#61e6c7"><b>◌</b> PHASE MATCH</span>':'';$('special-legend').innerHTML=gateLegend+phaseLegend+active.map(t=>`<span style="color:${SPECIAL[t].c}"><b>${SPECIAL[t].l}</b> ${SPECIAL[t].n}</span>`).join('')}
     function requiredPhase(){if(!rules.channels)return-1;const connected=points.filter((p,i)=>p.v&&i>1&&p.type!=='exit').length;return connected%rules.channels}
     function candidates(){const phase=requiredPhase(),a=[];points.forEach((p,i)=>{if(!p.v&&p.type!=='exit'&&(!rules.channels||p.phase===phase))a.push(i)});return a}
     function diff(a,b){let d=(a-b+Math.PI)%TAU-Math.PI;if(d< -Math.PI)d+=TAU;return Math.abs(d)}
@@ -156,7 +154,7 @@
       if(!t||t.e>t.t){msg('OFF AXIS',true);return}
       const node=points[t.i];
       const neededPhase=requiredPhase();
-      if(rules.channels&&node.phase!==neededPhase){msg(`SIGNAL ${CHANNEL_LABELS[neededPhase]} ONLY`,true);return}
+      if(rules.channels&&node.phase!==neededPhase){msg('PHASE LOCKED',true);return}
       if(node.gate&&node.gate!==direction){msg(node.gate>0?'CLOCKWISE ONLY ↻':'COUNTER-CLOCKWISE ONLY ↺',true);return}
       if(node.type==='pulse'&&!pulseOpen(node)){msg('GATE CLOSED',true);return}
       const addedCross=crossingCount(current,t.i);
@@ -203,9 +201,9 @@
           ctx.rotate(Math.PI/4);ctx.fillStyle=p.v?'#4fcb73':'#071f16';ctx.strokeStyle=p.v?'#9cec72':'rgba(244,246,233,.72)';ctx.lineWidth=2;ctx.fillRect(-8,-8,16,16);ctx.strokeRect(-8,-8,16,16);ctx.rotate(-Math.PI/4);
           ctx.fillStyle=p.v?'#dfffaa':'rgba(244,246,233,.7)';ctx.beginPath();ctx.arc(0,0,2.5,0,TAU);ctx.fill();
         }
-        if(p.gate&&!p.v){ctx.fillStyle=p.gate===direction?'#c7f04a':'rgba(244,246,233,.28)';ctx.font='800 13px Arial';ctx.textAlign='center';ctx.fillText(p.gate>0?'↻':'↺',0,-15)}
-        if(p.phase>=0&&!p.v){const color=CHANNEL_COLORS[p.phase];ctx.fillStyle='#020c08';ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(14,14,7,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle=color;ctx.font='800 7px Arial';ctx.textAlign='center';ctx.fillText(CHANNEL_LABELS[p.phase],14,16.5)}
-        if(active){ctx.strokeStyle='rgba(199,240,74,.42)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,22,0,TAU);ctx.stroke();ctx.strokeStyle='#c7f04a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(13,0);ctx.moveTo(0,-13);ctx.lineTo(0,13);ctx.stroke()}
+        if(p.gate&&!p.v){ctx.fillStyle=p.gate===direction?'#c7f04a':'rgba(244,246,233,.28)';ctx.font='800 13px Arial';ctx.textAlign='center';ctx.fillText(p.gate>0?'↻':'↺',0,p.phase>=0?-28:-15)}
+        if(p.phase>=0&&!p.v){const phaseAngle=-Math.PI/2+p.phase/rules.channels*TAU;ctx.strokeStyle='rgba(244,246,233,.62)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,16,phaseAngle-.13,phaseAngle+.13);ctx.stroke();ctx.beginPath();ctx.moveTo(Math.cos(phaseAngle)*12,Math.sin(phaseAngle)*12);ctx.lineTo(Math.cos(phaseAngle)*19,Math.sin(phaseAngle)*19);ctx.stroke()}
+        if(active){ctx.strokeStyle='rgba(199,240,74,.42)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,22,0,TAU);ctx.stroke();ctx.strokeStyle='#c7f04a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(13,0);ctx.moveTo(0,-13);ctx.lineTo(0,13);ctx.stroke();if(rules.channels){const phaseAngle=-Math.PI/2+requiredPhase()/rules.channels*TAU;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,27,phaseAngle-.18,phaseAngle+.18);ctx.stroke();ctx.beginPath();ctx.moveTo(Math.cos(phaseAngle)*22,Math.sin(phaseAngle)*22);ctx.lineTo(Math.cos(phaseAngle)*31,Math.sin(phaseAngle)*31);ctx.stroke()}}
         ctx.restore();
       });
     }
